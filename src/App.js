@@ -73,6 +73,7 @@ const MOTIVACIONES_ES = {
 function traducirEntorno(e) { return ENTORNOS_ES[e] || e; }
 function traducirMotivacion(m) { return MOTIVACIONES_ES[m] || m; }
 
+const USERS = {
   "mark@multiplaihealth.com": {
     nombre: "Mark Paul", apellido: "Ramondt", tipo: "Generador", autoridad: "Emocional (Plexo Solar)", perfil: "4/1",
     estrategia: "Responder", firma: "Satisfacción", no_self_theme: "Frustración", definicion: "Triple",
