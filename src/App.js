@@ -367,7 +367,12 @@ For vague questions, ask ONE clarifying question first.`;
 
       {/* Header */}
       <div style={{ padding: ".9rem 2rem", borderBottom: "1px solid rgba(184,154,78,.2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ ...logo, marginBottom: 0 }}>SIMPLE</div>
+        <div style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
+          <div style={{ ...logo, marginBottom: 0 }}>SIMPLE</div>
+          <div style={{ fontFamily: NUNITO, fontSize: ".85rem", color: C.dim }}>
+            {lang === "en" ? "Hi, " : "Hola, "}<span style={{ color: C.txt, fontWeight: 600 }}>{user.nombre}</span>
+          </div>
+        </div>
         <button onClick={() => go("welcome")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>{lang === "en" ? "Sign out →" : "Salir →"}</button>
       </div>
 
