@@ -179,13 +179,10 @@ function Welcome({ go, lang, setLang }) {
       <div style={logo}>SIMPLE</div>
       <div style={{ textAlign: "center", maxWidth: 560 }}>
         <div style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 300, lineHeight: 1.25, marginBottom: "1.4rem", fontFamily: GEORGIA }}>
-          {lang === "en" ? <>Your personalized<br/><span style={{ color: C.gold, fontStyle: "italic" }}>instruction manual.</span></> : <>Tu manual de instrucciones<br/><span style={{ color: C.gold, fontStyle: "italic" }}>personalizado.</span></>}
+          {lang === "en" ? <>Your personal<br/><span style={{ color: C.gold, fontStyle: "italic" }}>decision-making system.</span></> : <>Tu sistema personal de<br/><span style={{ color: C.gold, fontStyle: "italic" }}>toma de decisiones.</span></>}
         </div>
-        <div style={{ color: C.dim, fontSize: "1rem", lineHeight: 1.8, maxWidth: 460, margin: "0 auto .6rem", fontFamily: NUNITO, fontWeight: 400 }}>
-          {lang === "en" ? "An AI connected to your human nature." : "Una IA conectada a tu naturaleza humana."}
-        </div>
-        <div style={{ color: "rgba(240,235,224,.3)", fontSize: ".85rem", fontFamily: NUNITO, fontWeight: 400, letterSpacing: ".05em", marginBottom: "2.5rem" }}>
-          {lang === "en" ? "No generic answers. Built for you." : "Sin respuestas genéricas. Creado a tu medida."}
+        <div style={{ color: C.dim, fontSize: "1rem", lineHeight: 1.8, maxWidth: 460, margin: "0 auto 2.5rem", fontFamily: NUNITO, fontWeight: 400 }}>
+          {lang === "en" ? "An AI that responds according to how you're designed." : "Una IA que responde según cómo estás diseñado."}
         </div>
         <div style={{ maxWidth: 300, margin: "0 auto", display: "flex", flexDirection: "column", gap: ".8rem" }}>
           <button onClick={() => go("register")} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>
@@ -197,7 +194,7 @@ function Welcome({ go, lang, setLang }) {
         </div>
       </div>
       <div style={{ position: "fixed", bottom: "2rem", fontFamily: "monospace", fontSize: ".55rem", color: "rgba(240,235,224,.2)", letterSpacing: ".15em", textAlign: "center" }}>
-        {lang === "en" ? "SIMPLE CHAT 2026. No generic answers. Built for you." : "SIMPLE CHAT 2026. Sin respuestas genéricas. Creado a tu medida."}
+        {lang === "en" ? "SIMPLE · 2026  No generic answers. Designed for you." : "SIMPLE · 2026  Sin respuestas genéricas. Diseñado a tu medida."}
       </div>
     </div>
   );
@@ -496,7 +493,7 @@ For vague questions, ask ONE clarifying question first.`;
         </div>
       </div>
       <div style={{ textAlign: "center", padding: ".6rem", fontFamily: "monospace", fontSize: ".5rem", color: "rgba(240,235,224,.15)", letterSpacing: ".15em" }}>
-        {lang === "en" ? "SIMPLE CHAT 2026. No generic answers. Built for you." : "SIMPLE CHAT 2026. Sin respuestas genéricas. Creado a tu medida."}
+        {lang === "en" ? "SIMPLE · 2026  No generic answers. Designed for you." : "SIMPLE · 2026  Sin respuestas genéricas. Diseñado a tu medida."}
       </div>
     </div>
   );
