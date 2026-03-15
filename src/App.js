@@ -41,12 +41,55 @@ LÍMITES CLAROS:
 - No hagas diagnósticos de salud mental ni médicos.
 - Si falta contexto para dar una respuesta útil, preguntá antes de responder.`;
 
-const DEMO_USER = {
-  nombre: "Francisco", tipo: "Generador", autoridad: "Sacral", perfil: "4/6",
-  estrategia: "Responder", firma: "Satisfacción",
-  centros: { Bazo: "defined", Sacral: "defined", Raiz: "defined" },
-  canales: ["28-38", "50-27", "42-53"],
-  entorno: "Cuevas", motivacion: "Esperanza"
+const USERS = {
+  "mark@multiplaihealth.com": {
+    nombre: "Mark Paul", apellido: "Ramondt", tipo: "Generador", autoridad: "Emocional (Plexo Solar)", perfil: "4/1",
+    estrategia: "Responder", firma: "Satisfacción", no_self_theme: "Frustración", definicion: "Triple",
+    centros: { Emocional: "defined", Ajna: "defined", Sacral: "defined", Bazo: "undefined", Corazon: "undefined", Cabeza: "defined", Garganta: "defined", G: "defined", Raiz: "defined" },
+    canales_definidos: ["43-23", "64-47", "46-29", "30-41"],
+    variables: { motivación: "Innocence", digestión: "Calm", perspectiva: "Perspective 6", entorno: "Mountains" },
+    fecha_nacimiento: "1969-11-14", lugar_nacimiento: "Ciudad de México, México"
+  },
+  "tomas.fileni@gmail.com": {
+    nombre: "Tomás", apellido: "Fileni", tipo: "Generador", autoridad: "Sacral", perfil: "2/4",
+    estrategia: "Responder", firma: "Satisfacción", no_self_theme: "Frustración", definicion: "Doble",
+    centros: { Bazo: "defined", Sacral: "defined", Emocional: "undefined", Ajna: "undefined", Raiz: "undefined", Corazon: "defined", Garganta: "undefined", G: "defined", Cabeza: "undefined" },
+    canales_definidos: ["26-44", "46-29"],
+    variables: { motivación: "Guilt", digestión: "Smell", entorno: "Valleys", perspectiva: "Perspective 5" },
+    fecha_nacimiento: "1988-02-15", lugar_nacimiento: "Buenos Aires, Argentina"
+  },
+  "blondyar@gmail.com": {
+    nombre: "Daniela", apellido: "Cuppi", tipo: "Generador Manifestante", autoridad: "Sacral", perfil: "6/2",
+    estrategia: "Responder y luego informar", firma: "Satisfacción/Paz", no_self_theme: "Frustración/Enojo", definicion: "Simple",
+    centros: { Sacral: "defined", Bazo: "undefined", Emocional: "undefined", Ajna: "undefined", Raiz: "defined", Corazon: "undefined", Cabeza: "undefined", G: "defined", Garganta: "defined" },
+    canales_definidos: ["10-34", "31-7", "9-52"],
+    variables: { motivación: "Hope", digestión: "Calm", perspectiva: "Personal", entorno: "Shores" },
+    fecha_nacimiento: "1986-06-30", lugar_nacimiento: "Córdoba, Argentina"
+  },
+  "mateo@cookunity.com": {
+    nombre: "Mateo", apellido: "Marietti", tipo: "Proyector", autoridad: "Emocional (Plexo Solar)", perfil: "3/5",
+    estrategia: "Esperar invitación", firma: "Éxito", no_self_theme: "Amargura", definicion: "Doble",
+    centros: { Ajna: "defined", G: "undefined", Emocional: "defined", Cabeza: "undefined", Corazon: "undefined", Bazo: "defined", Sacral: "undefined", Garganta: "defined", Raiz: "defined" },
+    canales_definidos: ["43-23", "28-38", "30-41"],
+    variables: { motivación: "Desire", digestión: "Thirst", entorno: "Caves", perspectiva: "Personal" },
+    fecha_nacimiento: "1985-02-15", lugar_nacimiento: "Buenos Aires, Argentina"
+  },
+  "soyfranblanco@gmail.com": {
+    nombre: "Francisco", apellido: "Blanco", tipo: "Generador", autoridad: "Sacral", perfil: "4/6",
+    estrategia: "Responder", firma: "Satisfacción", no_self_theme: "Frustración", definicion: "Simple",
+    centros: { Corazon: "undefined", Cabeza: "undefined", G: "undefined", Emocional: "undefined", Ajna: "undefined", Raiz: "defined", Sacral: "defined", Garganta: "undefined", Bazo: "defined" },
+    canales_definidos: ["28-38", "50-27", "42-53"],
+    variables: { motivación: "Hope", perspectiva: "Perspective 6", entorno: "Caves", digestión: "Calm" },
+    fecha_nacimiento: "1984-05-06", lugar_nacimiento: "San Andrés de Giles, Argentina"
+  },
+  "dejatellevaralegremente@gmail.com": {
+    nombre: "Mercedes", apellido: "González", tipo: "Proyector", autoridad: "Esplénica (Bazo)", perfil: "4/1",
+    estrategia: "Esperar invitación", firma: "Éxito", no_self_theme: "Amargura", definicion: "Simple",
+    centros: { Cabeza: "undefined", Corazon: "undefined", Ajna: "undefined", G: "defined", Emocional: "undefined", Raiz: "undefined", Bazo: "defined", Sacral: "undefined", Garganta: "undefined" },
+    canales_definidos: ["10-57"],
+    variables: { motivación: "Innocence", entorno: "Shores", perspectiva: "Perspective 6", digestión: "Calm" },
+    fecha_nacimiento: "1990-01-03", lugar_nacimiento: "Buenos Aires, Argentina"
+  }
 };
 
 const CHIPS = [
@@ -180,19 +223,21 @@ function Login({ go }) {
   const [err, setErr] = useState("");
   function ok() {
     if (!email || !pass) { setErr("Completá email y contraseña."); return; }
-    if (pass === "demo") { go("chat"); return; }
-    setErr("Contraseña incorrecta. Usá 'demo' para el prototipo.");
+    const user = USERS[email.toLowerCase().trim()];
+    if (!user) { setErr("Email no registrado en el prototipo."); return; }
+    if (pass !== "demo") { setErr("Contraseña incorrecta. Usá 'demo' para el prototipo."); return; }
+    go("chat", email.toLowerCase().trim());
   }
   return (
-    <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", fontFamily: "Georgia,serif", color: C.txt }}>
+    <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", fontFamily: NUNITO, color: C.txt }}>
       <div style={logo}>SIMPLE</div>
       <div style={{ width: "100%", maxWidth: 420 }}>
-        <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem" }}>Ingresar</div>
+        <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem", fontFamily: GEORGIA }}>Ingresar</div>
         <div style={{ color: C.dim, textAlign: "center", marginBottom: "1.5rem", fontSize: ".9rem" }}>Bienvenido de nuevo.</div>
         <div style={{ border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)" }}>
           {err && <div style={{ color: "#c06040", fontFamily: "monospace", fontSize: ".63rem", marginBottom: ".8rem", textAlign: "center" }}>{err}</div>}
           <label style={lbl}>Email</label>
-          <input style={inp} type="email" placeholder="tu@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+          <input style={inp} type="email" placeholder="tu@email.com" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
           <label style={lbl}>Contraseña</label>
           <Eye value={pass} onChange={e => setPass(e.target.value)} placeholder="Tu contraseña" />
           <button onClick={ok} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>Ingresar</button>
@@ -205,11 +250,12 @@ function Login({ go }) {
   );
 }
 
-function Chat({ go }) {
+function Chat({ go, userEmail }) {
+  const user = USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const sys = SYSTEM_PROMPT + " DISEÑO: " + JSON.stringify(DEMO_USER);
+  const sys = SYSTEM_PROMPT + " DISEÑO DE LA PERSONA: " + JSON.stringify(user);
   const lastAssistantRef = React.useRef(null);
   const chatContainerRef = React.useRef(null);
 
@@ -291,7 +337,7 @@ function Chat({ go }) {
       {tab === "mi-diseno" && (
         <div className="tab-panel">
           <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
-            {[["Tipo", DEMO_USER.tipo], ["Autoridad", DEMO_USER.autoridad], ["Perfil", DEMO_USER.perfil], ["Estrategia", DEMO_USER.estrategia], ["Firma", DEMO_USER.firma], ["Entorno", DEMO_USER.entorno]].map(([l, v]) => (
+            {[["Tipo", user.tipo], ["Autoridad", user.autoridad], ["Perfil", user.perfil], ["Estrategia", user.estrategia], ["Firma", user.firma], ["Entorno", user.variables?.entorno]].map(([l, v]) => (
               <div key={l}>
                 <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: 3 }}>{l}</div>
                 <div style={{ fontSize: ".9rem" }}>{v}</div>
@@ -325,7 +371,7 @@ function Chat({ go }) {
         <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", paddingRight: "1rem", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
           {msgs.length === 0 && (
             <div style={{ textAlign: "center", padding: "1.8rem 1rem", border: "1px solid rgba(184,154,78,.15)" }}>
-              <div style={{ fontSize: "1.9rem", fontWeight: 300, marginBottom: ".4rem" }}>Hola, <span style={{ color: C.gold, fontStyle: "italic" }}>{DEMO_USER.nombre}</span></div>
+              <div style={{ fontSize: "1.9rem", fontWeight: 300, marginBottom: ".4rem", fontFamily: GEORGIA }}>Hola, <span style={{ color: C.gold, fontStyle: "italic" }}>{user.nombre}</span></div>
               <div style={{ fontSize: ".9rem", color: C.dim, marginBottom: "1.5rem", lineHeight: 1.6 }}>Soy tu consultor personal de Diseño Humano.<br />Haceme cualquier pregunta.</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", justifyContent: "center" }}>
                 {CHIPS.map(c => (
@@ -382,7 +428,7 @@ export default function App() {
       {screen === "register" && <Register go={go} />}
       {screen === "pending" && <Pending email={email} go={go} />}
       {screen === "login" && <Login go={go} />}
-      {screen === "chat" && <Chat go={go} />}
+      {screen === "chat" && <Chat go={go} userEmail={email} />}
     </div>
   );
 }
