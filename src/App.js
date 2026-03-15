@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 
+const NUNITO = "'Nunito', sans-serif";
+const GEORGIA = "Georgia, serif";
+
 const SYSTEM_PROMPT = `Sos un consultor especializado en el método SIMPLE de Diseño Humano, con 15 años de experiencia asesorando a empresarios y directivos. Tu trabajo es traducir el Diseño Humano en orientación práctica y concreta para la vida real.
 
 TONO Y ESTILO:
@@ -54,7 +57,7 @@ function md(t) {
 
 const logo = { fontFamily: "monospace", fontSize: ".7rem", letterSpacing: ".5em", color: "#b89a4e", border: "1px solid #b89a4e", padding: ".4em 1em", display: "inline-block", marginBottom: "3rem" };
 const lbl = { fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".3em", color: "#b89a4e", textTransform: "uppercase", display: "block", marginBottom: ".35rem" };
-const inp = { width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.3)", color: "#f0ebe0", fontFamily: "Georgia,serif", fontSize: ".95rem", padding: ".6rem 0", outline: "none", marginBottom: "1.3rem", display: "block", boxSizing: "border-box" };
+const inp = { width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.3)", color: "#f0ebe0", fontFamily: NUNITO, fontSize: ".95rem", padding: ".6rem 0", outline: "none", marginBottom: "1.3rem", display: "block", boxSizing: "border-box" };
 
 function Eye({ value, onChange, placeholder = "Contraseña" }) {
   const [s, setS] = useState(false);
@@ -70,18 +73,18 @@ function Eye({ value, onChange, placeholder = "Contraseña" }) {
 
 function Welcome({ go }) {
   return (
-    <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", fontFamily: "Georgia,serif", color: C.txt }}>
+    <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", fontFamily: NUNITO, color: C.txt }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap');`}</style>
       <div style={logo}>SIMPLE</div>
       <div style={{ textAlign: "center", maxWidth: 560 }}>
-        <div style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 300, lineHeight: 1.25, marginBottom: "1.4rem" }}>
+        <div style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 300, lineHeight: 1.25, marginBottom: "1.4rem", fontFamily: GEORGIA }}>
           Tu manual de instrucciones<br/>
-
           <span style={{ color: C.gold, fontStyle: "italic" }}>personalizado.</span>
         </div>
-        <div style={{ color: C.dim, fontSize: "1rem", lineHeight: 1.8, maxWidth: 460, margin: "0 auto .6rem" }}>
+        <div style={{ color: C.dim, fontSize: "1rem", lineHeight: 1.8, maxWidth: 460, margin: "0 auto .6rem", fontFamily: NUNITO, fontWeight: 400 }}>
           Todo lo que necesitás saber sobre cómo funcionás.
         </div>
-        <div style={{ color: "rgba(240,235,224,.3)", fontSize: ".85rem", fontFamily: "monospace", letterSpacing: ".05em", marginBottom: "2.5rem" }}>
+        <div style={{ color: "rgba(240,235,224,.3)", fontSize: ".85rem", fontFamily: NUNITO, fontWeight: 400, letterSpacing: ".05em", marginBottom: "2.5rem" }}>
           Sin respuestas genéricas. Creado a tu medida.
         </div>
         <div style={{ maxWidth: 300, margin: "0 auto", display: "flex", flexDirection: "column", gap: ".8rem" }}>
@@ -237,24 +240,78 @@ function Chat({ go }) {
     setLoading(false);
   }
 
+  const [tab, setTab] = useState(null);
+  const [lang, setLang] = useState("es");
+
   return (
-    <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", fontFamily: "Georgia,serif", color: C.txt }}>
-      <style>{"@keyframes p{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}"}</style>
+    <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", fontFamily: NUNITO, color: C.txt }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap');
+        @keyframes p{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+        .tab-btn { background: none; border: none; cursor: pointer; font-family: monospace; font-size: .58rem; letter-spacing: .25em; text-transform: uppercase; padding: .5rem .9rem; color: rgba(240,235,224,.4); transition: color .2s; }
+        .tab-btn:hover { color: #b89a4e; }
+        .tab-btn.active { color: #b89a4e; border-bottom: 1px solid #b89a4e; }
+        .tab-panel { padding: 1.2rem 2rem; border-bottom: 1px solid rgba(184,154,78,.1); background: rgba(255,255,255,.02); font-size: .88rem; line-height: 1.8; color: rgba(240,235,224,.7); font-family: '${NUNITO}'; }
+      `}</style>
+
+      {/* Header */}
       <div style={{ padding: ".9rem 2rem", borderBottom: "1px solid rgba(184,154,78,.2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ ...logo, marginBottom: 0 }}>SIMPLE</div>
         <button onClick={() => go("welcome")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>Salir →</button>
       </div>
-      <div style={{ padding: ".7rem 2rem", borderBottom: "1px solid rgba(184,154,78,.15)", background: "rgba(255,255,255,.02)", display: "flex", gap: "1.5rem", flexWrap: "wrap", alignItems: "center" }}>
-        {[["Tipo", DEMO_USER.tipo], ["Autoridad", DEMO_USER.autoridad], ["Perfil", DEMO_USER.perfil], ["Estrategia", DEMO_USER.estrategia], ["Firma", DEMO_USER.firma]].map(([l, v], i) => (
-          <div key={l} style={{ display: "flex", gap: "1.5rem", alignItems: "center" }}>
-            {i > 0 && <div style={{ width: 1, height: "1.3rem", background: "rgba(184,154,78,.2)" }} />}
-            <div>
-              <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: 2 }}>{l}</div>
-              <div style={{ fontSize: ".85rem" }}>{v}</div>
-            </div>
-          </div>
+
+      {/* Tabs */}
+      <div style={{ borderBottom: "1px solid rgba(184,154,78,.15)", display: "flex", alignItems: "center", paddingLeft: "1rem", gap: ".2rem" }}>
+        {[["mi-diseno", "Mi diseño"], ["inspiracion", "Inspiración"], ["como-funciona", "Cómo funciona"]].map(([id, label]) => (
+          <button key={id} className={`tab-btn${tab === id ? " active" : ""}`}
+            onClick={() => setTab(tab === id ? null : id)}>
+            {label}
+          </button>
         ))}
+        <div style={{ marginLeft: "auto", display: "flex", gap: ".3rem", paddingRight: "1rem" }}>
+          {["es", "en"].map(l => (
+            <button key={l} onClick={() => setLang(l)}
+              style={{ background: lang === l ? "rgba(184,154,78,.15)" : "none", border: "1px solid rgba(184,154,78,.25)", color: lang === l ? C.gold : C.dim, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".3em .7em", cursor: "pointer", textTransform: "uppercase" }}>
+              {l}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* Tab panels */}
+      {tab === "mi-diseno" && (
+        <div className="tab-panel">
+          <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
+            {[["Tipo", DEMO_USER.tipo], ["Autoridad", DEMO_USER.autoridad], ["Perfil", DEMO_USER.perfil], ["Estrategia", DEMO_USER.estrategia], ["Firma", DEMO_USER.firma], ["Entorno", DEMO_USER.entorno]].map(([l, v]) => (
+              <div key={l}>
+                <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: 3 }}>{l}</div>
+                <div style={{ fontSize: ".9rem" }}>{v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {tab === "inspiracion" && (
+        <div className="tab-panel">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem" }}>
+            {CHIPS.map(c => (
+              <button key={c} onClick={() => { send(c); setTab(null); }}
+                style={{ fontFamily: NUNITO, fontSize: ".8rem", padding: ".4em .9em", border: "1px solid rgba(184,154,78,.25)", color: C.dim, cursor: "pointer", background: "transparent", borderRadius: 2 }}
+                onMouseEnter={e => { e.target.style.borderColor = C.gold; e.target.style.color = "#d4b96a"; }}
+                onMouseLeave={e => { e.target.style.borderColor = "rgba(184,154,78,.25)"; e.target.style.color = C.dim; }}>
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {tab === "como-funciona" && (
+        <div className="tab-panel" style={{ maxWidth: 640 }}>
+          <p style={{ marginTop: 0 }}><strong style={{ color: C.gold }}>SIMPLE</strong> es tu consultor personal de Diseño Humano. Podés hacerle cualquier pregunta sobre cómo tomás decisiones, cómo te relacionás, cómo gestionás tu energía o cómo avanzar en tu trabajo.</p>
+          <p>No da respuestas genéricas. Todo lo que te diga está basado en tu diseño específico — tu tipo, autoridad, perfil y centros.</p>
+          <p style={{ marginBottom: 0 }}>Cuanto más contexto le des sobre tu situación concreta, mejor va a ser la respuesta. No hace falta que sepas nada de Diseño Humano para usarlo.</p>
+        </div>
+      )}
       <div style={{ flex: 1, maxWidth: 760, margin: "0 auto", width: "100%", padding: "0 1.5rem", display: "flex", flexDirection: "column" }}>
         <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", paddingRight: "1rem", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
           {msgs.length === 0 && (
@@ -279,7 +336,7 @@ function Chat({ go }) {
               <div style={{ fontFamily: "monospace", fontSize: ".53rem", letterSpacing: ".3em", textTransform: "uppercase", marginBottom: ".3rem", color: m.role === "user" ? "rgba(240,235,224,.3)" : C.gold }}>
                 {m.role === "user" ? "Vos" : "SIMPLE"}
               </div>
-              <div style={m.role === "user" ? { fontSize: "1rem", fontStyle: "italic", color: "rgba(240,235,224,.55)", lineHeight: 1.7 } : { fontSize: "1rem", color: C.txt, lineHeight: 1.85 }}
+              <div style={m.role === "user" ? { fontSize: "1rem", fontStyle: "italic", color: "rgba(240,235,224,.55)", lineHeight: 1.7, fontFamily: NUNITO } : { fontSize: "1rem", color: C.txt, lineHeight: 1.85, fontFamily: NUNITO }}
                 dangerouslySetInnerHTML={{ __html: md(m.content) }} />
             </div>
           ))}
