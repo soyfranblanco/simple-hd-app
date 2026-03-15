@@ -338,6 +338,25 @@ For vague questions, ask ONE clarifying question first.`;
     }
   }, [msgs]);
 
+  async function send(t) {
+    const txt = t || input.trim();
+    if (!txt || loading) return;
+    setInput("");
+    const next = [...msgs, { role: "user", content: txt }];
+    setMsgs(next);
+    setLoading(true);
+    try {
+      const r = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: sys, messages: next })
+      });
+      const d = await r.json();
+      setMsgs([...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }]);
+    } catch { setMsgs([...next, { role: "assistant", content: lang === "en" ? "Connection error." : "Error de conexión." }]); }
+    setLoading(false);
+  }
+
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", fontFamily: NUNITO, color: C.txt }}>
       <style>{`
