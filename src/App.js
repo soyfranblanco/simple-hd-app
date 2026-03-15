@@ -124,13 +124,22 @@ const USERS = {
   }
 };
 
-const CHIPS = [
+const CHIPS_ES = [
   "¿Cómo tomo decisiones importantes?",
   "¿Cuál es mi superpoder en el trabajo?",
   "¿Por qué me agoto tan seguido?",
   "¿Cómo atraigo mejores oportunidades?",
   "¿Cómo comunico mi servicio?",
   "¿Cómo me vinculo mejor con los demás?"
+];
+
+const CHIPS_EN = [
+  "How do I make important decisions?",
+  "What's my superpower at work?",
+  "Why do I get exhausted so often?",
+  "How do I attract better opportunities?",
+  "How do I communicate my value?",
+  "How do I relate better with others?"
 ];
 
 const C = { bg: "#080808", gold: "#b89a4e", txt: "#f0ebe0", dim: "rgba(240,235,224,0.45)" };
@@ -143,11 +152,11 @@ const logo = { fontFamily: "monospace", fontSize: ".7rem", letterSpacing: ".5em"
 const lbl = { fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".3em", color: "#b89a4e", textTransform: "uppercase", display: "block", marginBottom: ".35rem" };
 const inp = { width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.3)", color: "#f0ebe0", fontFamily: NUNITO, fontSize: ".95rem", padding: ".6rem 0", outline: "none", marginBottom: "1.3rem", display: "block", boxSizing: "border-box" };
 
-function Eye({ value, onChange, placeholder = "Contraseña" }) {
+function Eye({ value, onChange, placeholder = "Contraseña", onKeyDown }) {
   const [s, setS] = useState(false);
   return (
     <div style={{ position: "relative", marginBottom: "1.3rem" }}>
-      <input style={{ ...inp, marginBottom: 0, paddingRight: "2rem" }} type={s ? "text" : "password"} placeholder={placeholder} value={value} onChange={onChange} />
+      <input style={{ ...inp, marginBottom: 0, paddingRight: "2rem" }} type={s ? "text" : "password"} placeholder={placeholder} value={value} onChange={onChange} onKeyDown={onKeyDown} />
       <button onClick={() => setS(v => !v)} style={{ position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(240,235,224,.45)", fontSize: "1rem" }}>
         {s ? "🙈" : "👁"}
       </button>
@@ -155,28 +164,35 @@ function Eye({ value, onChange, placeholder = "Contraseña" }) {
   );
 }
 
-function Welcome({ go }) {
+function Welcome({ go, lang, setLang }) {
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", fontFamily: NUNITO, color: C.txt }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap');`}</style>
+      <div style={{ position: "fixed", top: "1.5rem", right: "1.5rem", display: "flex", gap: ".3rem" }}>
+        {["es", "en"].map(l => (
+          <button key={l} onClick={() => setLang(l)}
+            style={{ background: lang === l ? "rgba(184,154,78,.15)" : "none", border: "1px solid rgba(184,154,78,.25)", color: lang === l ? C.gold : C.dim, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".3em .7em", cursor: "pointer", textTransform: "uppercase" }}>
+            {l}
+          </button>
+        ))}
+      </div>
       <div style={logo}>SIMPLE</div>
       <div style={{ textAlign: "center", maxWidth: 560 }}>
         <div style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 300, lineHeight: 1.25, marginBottom: "1.4rem", fontFamily: GEORGIA }}>
-          Tu manual de instrucciones<br/>
-          <span style={{ color: C.gold, fontStyle: "italic" }}>personalizado.</span>
+          {lang === "en" ? <>Your personalized<br/><span style={{ color: C.gold, fontStyle: "italic" }}>instruction manual.</span></> : <>Tu manual de instrucciones<br/><span style={{ color: C.gold, fontStyle: "italic" }}>personalizado.</span></>}
         </div>
         <div style={{ color: C.dim, fontSize: "1rem", lineHeight: 1.8, maxWidth: 460, margin: "0 auto .6rem", fontFamily: NUNITO, fontWeight: 400 }}>
-          Todo lo que necesitás saber sobre cómo funcionás.
+          {lang === "en" ? "Everything you need to know about how you work." : "Todo lo que necesitás saber sobre cómo funcionás."}
         </div>
         <div style={{ color: "rgba(240,235,224,.3)", fontSize: ".85rem", fontFamily: NUNITO, fontWeight: 400, letterSpacing: ".05em", marginBottom: "2.5rem" }}>
-          Sin respuestas genéricas. Creado a tu medida.
+          {lang === "en" ? "No generic answers. Built for you." : "Sin respuestas genéricas. Creado a tu medida."}
         </div>
         <div style={{ maxWidth: 300, margin: "0 auto", display: "flex", flexDirection: "column", gap: ".8rem" }}>
           <button onClick={() => go("register")} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>
-            Crear mi cuenta
+            {lang === "en" ? "Create my account" : "Crear mi cuenta"}
           </button>
           <button onClick={() => go("login")} style={{ background: "transparent", color: C.dim, border: "1px solid rgba(184,154,78,.3)", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>
-            Ya tengo cuenta
+            {lang === "en" ? "I already have an account" : "Ya tengo cuenta"}
           </button>
         </div>
       </div>
@@ -249,46 +265,51 @@ function Pending({ email, go }) {
   );
 }
 
-function Login({ go }) {
+function Login({ go, lang }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [err, setErr] = useState("");
   function ok() {
-    if (!email || !pass) { setErr("Completá email y contraseña."); return; }
+    if (!email || !pass) { setErr(lang === "en" ? "Please enter email and password." : "Completá email y contraseña."); return; }
     const user = USERS[email.toLowerCase().trim()];
-    if (!user) { setErr("Email no registrado en el prototipo."); return; }
-    if (pass !== "demo") { setErr("Contraseña incorrecta. Usá 'demo' para el prototipo."); return; }
+    if (!user) { setErr(lang === "en" ? "Email not registered in the prototype." : "Email no registrado en el prototipo."); return; }
+    if (pass !== "demo") { setErr(lang === "en" ? "Wrong password. Use 'demo' for the prototype." : "Contraseña incorrecta. Usá 'demo' para el prototipo."); return; }
     go("chat", email.toLowerCase().trim());
   }
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", fontFamily: NUNITO, color: C.txt }}>
       <div style={logo}>SIMPLE</div>
       <div style={{ width: "100%", maxWidth: 420 }}>
-        <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem", fontFamily: GEORGIA }}>Ingresar</div>
-        <div style={{ color: C.dim, textAlign: "center", marginBottom: "1.5rem", fontSize: ".9rem" }}>Bienvenido de nuevo.</div>
+        <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem", fontFamily: GEORGIA }}>{lang === "en" ? "Sign in" : "Ingresar"}</div>
+        <div style={{ color: C.dim, textAlign: "center", marginBottom: "1.5rem", fontSize: ".9rem" }}>{lang === "en" ? "Welcome back." : "Bienvenido de nuevo."}</div>
         <div style={{ border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)" }}>
           {err && <div style={{ color: "#c06040", fontFamily: "monospace", fontSize: ".63rem", marginBottom: ".8rem", textAlign: "center" }}>{err}</div>}
           <label style={lbl}>Email</label>
           <input style={inp} type="email" placeholder="tu@email.com" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
-          <label style={lbl}>Contraseña</label>
-          <Eye value={pass} onChange={e => setPass(e.target.value)} placeholder="Tu contraseña" />
-          <button onClick={ok} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>Ingresar</button>
+          <label style={lbl}>{lang === "en" ? "Password" : "Contraseña"}</label>
+          <Eye value={pass} onChange={e => setPass(e.target.value)} placeholder={lang === "en" ? "Your password" : "Tu contraseña"} onKeyDown={e => e.key === "Enter" && ok()} />
+          <button onClick={ok} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>
+            {lang === "en" ? "Sign in" : "Ingresar"}
+          </button>
         </div>
         <div style={{ textAlign: "center", margin: "1.2rem 0", color: C.dim, fontFamily: "monospace", fontSize: ".7rem" }}>
-          ¿No tenés cuenta? <button onClick={() => go("register")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".63rem" }}>Registrate acá</button>
+          {lang === "en" ? "No account? " : "¿No tenés cuenta? "}
+          <button onClick={() => go("register")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".63rem" }}>
+            {lang === "en" ? "Sign up here" : "Registrate acá"}
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-function Chat({ go, userEmail }) {
+function Chat({ go, userEmail, lang, setLang }) {
   const user = USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(null);
-  const [lang, setLang] = useState("es");
+  const CHIPS = lang === "en" ? CHIPS_EN : CHIPS_ES;
 
   const EN_PROMPT = `You are a Human Design consultant specialized in the SIMPLE method, with 15 years of experience advising executives and entrepreneurs. Translate Human Design into practical, concrete guidance.
 TONE: Direct, warm, no spiritual language. American English. No generic intros. Always end with a practical rule or action.
@@ -331,7 +352,7 @@ For vague questions, ask ONE clarifying question first.`;
       {/* Header */}
       <div style={{ padding: ".9rem 2rem", borderBottom: "1px solid rgba(184,154,78,.2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ ...logo, marginBottom: 0 }}>SIMPLE</div>
-        <button onClick={() => go("welcome")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>Salir →</button>
+        <button onClick={() => go("welcome")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>{lang === "en" ? "Sign out →" : "Salir →"}</button>
       </div>
 
       {/* Tabs */}
@@ -462,15 +483,16 @@ For vague questions, ask ONE clarifying question first.`;
 export default function App() {
   const [screen, setScreen] = useState("welcome");
   const [email, setEmail] = useState("");
+  const [lang, setLang] = useState("es");
   function go(s, e) { if (e) setEmail(e); setScreen(s); }
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
       <style>{"*{box-sizing:border-box;margin:0;padding:0}body{background:#080808}input,textarea{color:#f0ebe0!important;-webkit-text-fill-color:#f0ebe0!important;caret-color:#b89a4e}input::placeholder,textarea::placeholder{color:rgba(240,235,224,.3)!important;-webkit-text-fill-color:rgba(240,235,224,.3)!important}input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #080808 inset!important;-webkit-text-fill-color:#f0ebe0!important}"}</style>
-      {screen === "welcome" && <Welcome go={go} />}
-      {screen === "register" && <Register go={go} />}
-      {screen === "pending" && <Pending email={email} go={go} />}
-      {screen === "login" && <Login go={go} />}
-      {screen === "chat" && <Chat go={go} userEmail={email} />}
+      {screen === "welcome" && <Welcome go={go} lang={lang} setLang={setLang} />}
+      {screen === "register" && <Register go={go} lang={lang} />}
+      {screen === "pending" && <Pending email={email} go={go} lang={lang} />}
+      {screen === "login" && <Login go={go} lang={lang} />}
+      {screen === "chat" && <Chat go={go} userEmail={email} lang={lang} setLang={setLang} />}
     </div>
   );
 }
