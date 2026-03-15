@@ -182,7 +182,7 @@ function Welcome({ go, lang, setLang }) {
           {lang === "en" ? <>Your personalized<br/><span style={{ color: C.gold, fontStyle: "italic" }}>instruction manual.</span></> : <>Tu manual de instrucciones<br/><span style={{ color: C.gold, fontStyle: "italic" }}>personalizado.</span></>}
         </div>
         <div style={{ color: C.dim, fontSize: "1rem", lineHeight: 1.8, maxWidth: 460, margin: "0 auto .6rem", fontFamily: NUNITO, fontWeight: 400 }}>
-          {lang === "en" ? "Everything you need to know about how you work." : "Todo lo que necesitás saber sobre cómo funcionás."}
+          {lang === "en" ? "An AI connected to your human nature." : "Una IA conectada a tu naturaleza humana."}
         </div>
         <div style={{ color: "rgba(240,235,224,.3)", fontSize: ".85rem", fontFamily: NUNITO, fontWeight: 400, letterSpacing: ".05em", marginBottom: "2.5rem" }}>
           {lang === "en" ? "No generic answers. Built for you." : "Sin respuestas genéricas. Creado a tu medida."}
@@ -196,8 +196,8 @@ function Welcome({ go, lang, setLang }) {
           </button>
         </div>
       </div>
-      <div style={{ position: "fixed", bottom: "2rem", fontFamily: "monospace", fontSize: ".55rem", color: "rgba(240,235,224,.2)", letterSpacing: ".2em" }}>
-        © SIMPLE — DISEÑO HUMANO
+      <div style={{ position: "fixed", bottom: "2rem", fontFamily: "monospace", fontSize: ".55rem", color: "rgba(240,235,224,.2)", letterSpacing: ".15em", textAlign: "center" }}>
+        {lang === "en" ? "SIMPLE CHAT 2026. No generic answers. Built for you." : "SIMPLE CHAT 2026. Sin respuestas genéricas. Creado a tu medida."}
       </div>
     </div>
   );
@@ -494,6 +494,9 @@ For vague questions, ask ONE clarifying question first.`;
             {lang === "en" ? "Send" : "Enviar"}
           </button>
         </div>
+      </div>
+      <div style={{ textAlign: "center", padding: ".6rem", fontFamily: "monospace", fontSize: ".5rem", color: "rgba(240,235,224,.15)", letterSpacing: ".15em" }}>
+        {lang === "en" ? "SIMPLE CHAT 2026. No generic answers. Built for you." : "SIMPLE CHAT 2026. Sin respuestas genéricas. Creado a tu medida."}
       </div>
     </div>
   );
