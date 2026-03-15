@@ -201,8 +201,17 @@ function Chat({ go }) {
   const lastAssistantRef = React.useRef(null);
   const chatContainerRef = React.useRef(null);
 
+  const lastUserRef = React.useRef(null);
+
   React.useEffect(() => {
-    if (lastAssistantRef.current && chatContainerRef.current) {
+    if (!msgs.length) return;
+    const last = msgs[msgs.length - 1];
+    if (last.role === "user" && lastUserRef.current && chatContainerRef.current) {
+      const container = chatContainerRef.current;
+      const el = lastUserRef.current;
+      container.scrollTop = el.offsetTop - container.offsetTop - 20;
+    }
+    if (last.role === "assistant" && lastAssistantRef.current && chatContainerRef.current) {
       const container = chatContainerRef.current;
       const el = lastAssistantRef.current;
       container.scrollTop = el.offsetTop - container.offsetTop - 20;
@@ -247,7 +256,7 @@ function Chat({ go }) {
         ))}
       </div>
       <div style={{ flex: 1, maxWidth: 760, margin: "0 auto", width: "100%", padding: "0 1.5rem", display: "flex", flexDirection: "column" }}>
-        <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
+        <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", paddingRight: "1rem", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
           {msgs.length === 0 && (
             <div style={{ textAlign: "center", padding: "1.8rem 1rem", border: "1px solid rgba(184,154,78,.15)" }}>
               <div style={{ fontSize: "1.9rem", fontWeight: 300, marginBottom: ".4rem" }}>Hola, <span style={{ color: C.gold, fontStyle: "italic" }}>{DEMO_USER.nombre}</span></div>
@@ -264,7 +273,9 @@ function Chat({ go }) {
             </div>
           )}
           {msgs.map((m, i) => (
-            <div key={i} ref={m.role === "assistant" && i === msgs.length - 1 ? lastAssistantRef : null} style={{ textAlign: m.role === "user" ? "right" : "left" }}>
+            <div key={i}
+              ref={m.role === "assistant" && i === msgs.length - 1 ? lastAssistantRef : m.role === "user" && i === msgs.length - 1 ? lastUserRef : null}
+              style={{ textAlign: m.role === "user" ? "right" : "left" }}>
               <div style={{ fontFamily: "monospace", fontSize: ".53rem", letterSpacing: ".3em", textTransform: "uppercase", marginBottom: ".3rem", color: m.role === "user" ? "rgba(240,235,224,.3)" : C.gold }}>
                 {m.role === "user" ? "Vos" : "SIMPLE"}
               </div>
