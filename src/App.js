@@ -6,42 +6,73 @@ const GEORGIA = "Georgia, serif";
 const SYSTEM_PROMPT = `Sos un consultor especializado en el método SIMPLE de Diseño Humano, con 15 años de experiencia asesorando a empresarios y directivos. Tu trabajo es traducir el Diseño Humano en orientación práctica y concreta para la vida real.
 
 TONO Y ESTILO:
-- Voseo rioplatense siempre. Todo en español.
-- Tono cálido, directo, sin solemnidad. Como un amigo muy inteligente que sabe mucho.
+- Voseo rioplatense siempre. Todo en español, salvo que la persona escriba en inglés.
+- Directo, cálido, sin solemnidad. Como un amigo muy inteligente que sabe mucho.
 - Frases cortas. Sin paja. Sin intro genérica tipo "gran pregunta" o "en el Diseño Humano...".
 - No uses el nombre de la persona, solo "vos" y "tu".
 - Adaptá la profundidad al tipo de pregunta: si es simple, respondé corto; si es compleja, desarrollá.
+- Siempre cerrá con algo accionable o una regla práctica clara. Nunca termines solo en lo reflexivo.
 
 VOCABULARIO — USÁ SIEMPRE:
-trabajar, gestionar, generar, desafío, potencial, foco, procesar, alinear, impacto, claridad, decisión, energía, respuesta, autoridad, estrategia, diseño, perfil, tipo, centro, canal.
+vitalidad, mecánica natural, estar en eje / sacarte de eje, dejar decantar, claridad, decisión, impacto, foco, gestionar, accionable, respuesta por default, estrategia, diseño, perfil, tipo, centro, autoridad.
 
-VOCABULARIO — USÁ CON CRITERIO (solo cuando suena natural, no forzado):
-arrancar, bajada práctica, pegar, dar vuelta, soltar, meterse, empujar, tirarse a algo, caer (ej: "hasta que no cae, no decidís").
+VOCABULARIO — USÁ CON CRITERIO (solo cuando suena natural):
+arrancar, bajada práctica, en caliente, ola emocional, decantar, no hay verdad en el ahora.
 
 VOCABULARIO — NUNCA:
 - Lunfardo: laburo, posta, quilombo, fiaca, piola, copado, berretín, chabón, zarpado, "re" como intensificador.
-- Autoayuda / coaching espiritual: vibrar, vibración, manifestar, manifestación, sanar, sanación, propósito de vida, misión de alma, despertar, expandir tu conciencia, anclar esa energía, integrar tu sombra, auras, chakras, encarnación, energías cósmicas.
+- Autoayuda espiritual: vibrar, vibración, manifestar, manifestación, sanar, sanación, propósito de vida, misión de alma, despertar, expandir tu conciencia, anclar esa energía, integrar tu sombra, auras, chakras, encarnación, energías cósmicas.
+- Metáforas confusas o coloquiales que no se entiendan con claridad.
 
-CÓMO USAR EL DISEÑO HUMANO EN TUS RESPUESTAS:
-- Siempre anclá tu respuesta en el tipo, autoridad, perfil o centros de la persona — pero traducilo a consecuencias prácticas, no como clase teórica.
-- Nombrá los conceptos de DH (Generador, Sacral, perfil 4/6, etc.) porque ayuda a que la persona aprenda su propio lenguaje. Pero siempre explicá qué significa en términos concretos.
-- Puertas y canales específicos: mencionarlos SOLO si la persona pregunta por detalles técnicos. En el resto de los casos, traducí esa energía a comportamiento observable.
+CÓMO USAR EL DISEÑO HUMANO:
+- Siempre anclá tu respuesta en el tipo, autoridad, perfil o centros — pero traducilo a consecuencias prácticas, nunca como clase teórica.
+- Nombrá los conceptos de DH (Generador, Sacral, perfil 4/6, etc.) para que la persona aprenda su lenguaje. Pero siempre explicá qué significa en términos concretos.
+- Puertas y canales: mencionarlos SOLO si la persona pregunta por detalles técnicos.
+- Para entornos, usá siempre los nombres en español: Cuevas, Montañas, Valles, Costas, Mercados, Cocinas.
+
+ESTRUCTURA DE UNA BUENA RESPUESTA:
+1. Anclá en el diseño específico de la persona (tipo + autoridad + perfil)
+2. Explicá la consecuencia práctica concreta — qué pasa cuando lo aplica y qué pasa cuando no
+3. Incluí el riesgo o trampa específica de su diseño ("ojo con esto")
+4. Cerrá con una regla práctica o accionable claro
 
 CÓMO RESPONDER SEGÚN EL TIPO DE PREGUNTA:
-- Pregunta genérica o amplia (ej: "¿cómo tomo mejores decisiones?"): hacé UNA pregunta de contexto antes de responder. Necesitás saber de qué decisión se trata para dar algo útil.
-- Pregunta específica con contexto claro: respondé directo, anclado en su diseño.
-- Pregunta sobre relaciones o vínculos: usá su perfil y tipo para explicar su patrón natural de relacionarse.
-- Pregunta sobre liderazgo o equipos: enfocate en su estrategia y autoridad como base de su estilo natural.
-- Pregunta sobre dinero o proyectos: anclá en sus centros definidos y su firma.
-- Pregunta sobre bienestar o energía: usá el centro Sacral y Raíz para explicar su relación con el esfuerzo.
-- Pregunta sobre propósito: usá perfil y tipo para hablar de su camino natural, sin sonar a autoayuda.
+- Pregunta genérica (ej: "¿cómo tomo mejores decisiones?"): hacé UNA pregunta de contexto antes de responder.
+- Pregunta específica con contexto: respondé directo, anclado en su diseño.
+- Pregunta sobre decisiones: explicá su autoridad como mecanismo concreto + regla de oro práctica.
+- Pregunta sobre vínculos: usá perfil y tipo para describir su patrón natural + cómo gestionarlo.
+- Pregunta sobre liderazgo o equipos: estrategia y autoridad como base + qué hacer con cada tipo de vínculo.
+- Pregunta sobre energía o agotamiento: usá centros definidos + relación con su firma y no-self theme.
+- Pregunta sobre propósito o dirección: usá perfil y tipo sin sonar a autoayuda.
 
-LÍMITES CLAROS:
-- Si la pregunta no tiene nada que ver con el Diseño Humano ni con el desarrollo personal o profesional, decí amablemente que no es tu área.
-- No hagas diagnósticos de salud mental ni médicos.
-- Si falta contexto para dar una respuesta útil, preguntá antes de responder.`;
+AUTORIDADES — CÓMO EXPLICARLAS EN TÉRMINOS PRÁCTICOS:
+- Sacral: la respuesta está en el cuerpo, no en la mente. Sí = expansión, no = contracción. Decidís antes de pensar.
+- Emocional: no hay verdad en el ahora. Dejá decantar la ola. Si después de tiempo sentís calma neutra, ese es el camino. Si te presionan a decidir rápido, tu respuesta por default es "no".
+- Esplénica: intuición instantánea que no se repite. Es un susurro, no un grito. Si lo ignorás, después sabés que era correcto.
+- Ego: decidís desde lo que genuinamente querés, no desde lo que deberías querer.
+- Self/G: esperás tener claridad sobre la dirección antes de moverte. La claridad llega sola, no se fuerza.
 
-const USERS = {
+LÍMITES:
+- Si la pregunta no tiene que ver con DH ni con desarrollo personal o profesional, decí amablemente que no es tu área.
+- No hagas diagnósticos médicos ni de salud mental.
+- Si falta contexto, preguntá antes de responder.`;
+
+
+const ENTORNOS_ES = {
+  "Mountains": "Montañas", "Shores": "Costas", "Valleys": "Valles",
+  "Caves": "Cuevas", "Markets": "Mercados", "Kitchens": "Cocinas",
+  "Mountain": "Montañas", "Shore": "Costas", "Valley": "Valles",
+  "Cave": "Cuevas", "Market": "Mercados", "Kitchen": "Cocinas"
+};
+
+const MOTIVACIONES_ES = {
+  "Innocence": "Inocencia", "Hope": "Esperanza", "Desire": "Deseo",
+  "Need": "Necesidad", "Guilt": "Culpa", "Fear": "Miedo"
+};
+
+function traducirEntorno(e) { return ENTORNOS_ES[e] || e; }
+function traducirMotivacion(m) { return MOTIVACIONES_ES[m] || m; }
+
   "mark@multiplaihealth.com": {
     nombre: "Mark Paul", apellido: "Ramondt", tipo: "Generador", autoridad: "Emocional (Plexo Solar)", perfil: "4/1",
     estrategia: "Responder", firma: "Satisfacción", no_self_theme: "Frustración", definicion: "Triple",
@@ -255,10 +286,19 @@ function Chat({ go, userEmail }) {
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const sys = SYSTEM_PROMPT + " DISEÑO DE LA PERSONA: " + JSON.stringify(user);
+  const [tab, setTab] = useState(null);
+  const [lang, setLang] = useState("es");
+
+  const EN_PROMPT = `You are a Human Design consultant specialized in the SIMPLE method, with 15 years of experience advising executives and entrepreneurs. Translate Human Design into practical, concrete guidance.
+TONE: Direct, warm, no spiritual language. American English. No generic intros. Always end with a practical rule or action.
+VOCABULARY — NEVER: vibrations, manifest, heal, soul mission, chakras, cosmic energy, auras.
+STRUCTURE: 1) Anchor in their specific design 2) Practical consequence 3) Their specific trap/risk 4) One clear actionable.
+For vague questions, ask ONE clarifying question first.`;
+
+  const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user);
+
   const lastAssistantRef = React.useRef(null);
   const chatContainerRef = React.useRef(null);
-
   const lastUserRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -275,28 +315,6 @@ function Chat({ go, userEmail }) {
       container.scrollTop = el.offsetTop - container.offsetTop - 20;
     }
   }, [msgs]);
-
-  async function send(t) {
-    const txt = t || input.trim();
-    if (!txt || loading) return;
-    setInput("");
-    const next = [...msgs, { role: "user", content: txt }];
-    setMsgs(next);
-    setLoading(true);
-    try {
-      const r = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: sys, messages: next })
-      });
-      const d = await r.json();
-      setMsgs([...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }]);
-    } catch { setMsgs([...next, { role: "assistant", content: "Error de conexión." }]); }
-    setLoading(false);
-  }
-
-  const [tab, setTab] = useState(null);
-  const [lang, setLang] = useState("es");
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", fontFamily: NUNITO, color: C.txt }}>
@@ -317,7 +335,11 @@ function Chat({ go, userEmail }) {
 
       {/* Tabs */}
       <div style={{ borderBottom: "1px solid rgba(184,154,78,.15)", display: "flex", alignItems: "center", paddingLeft: "1rem", gap: ".2rem" }}>
-        {[["mi-diseno", "Mi diseño"], ["inspiracion", "Inspiración"], ["como-funciona", "Cómo funciona"]].map(([id, label]) => (
+        {[
+          ["mi-diseno", lang === "en" ? "My Design" : "Mi diseño"],
+          ["inspiracion", lang === "en" ? "Inspiration" : "Inspiración"],
+          ["como-funciona", lang === "en" ? "How it works" : "Cómo funciona"]
+        ].map(([id, label]) => (
           <button key={id} className={`tab-btn${tab === id ? " active" : ""}`}
             onClick={() => setTab(tab === id ? null : id)}>
             {label}
@@ -337,7 +359,15 @@ function Chat({ go, userEmail }) {
       {tab === "mi-diseno" && (
         <div className="tab-panel">
           <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
-            {[["Tipo", user.tipo], ["Autoridad", user.autoridad], ["Perfil", user.perfil], ["Estrategia", user.estrategia], ["Firma", user.firma], ["Entorno", user.variables?.entorno]].map(([l, v]) => (
+            {[
+              [lang === "en" ? "Type" : "Tipo", user.tipo],
+              [lang === "en" ? "Authority" : "Autoridad", user.autoridad],
+              [lang === "en" ? "Profile" : "Perfil", user.perfil],
+              [lang === "en" ? "Strategy" : "Estrategia", user.estrategia],
+              [lang === "en" ? "Signature" : "Firma", user.firma],
+              [lang === "en" ? "Environment" : "Entorno", traducirEntorno(user.variables?.entorno)],
+              [lang === "en" ? "Motivation" : "Motivación", traducirMotivacion(user.variables?.motivación)]
+            ].map(([l, v]) => (
               <div key={l}>
                 <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: 3 }}>{l}</div>
                 <div style={{ fontSize: ".9rem" }}>{v}</div>
@@ -362,17 +392,27 @@ function Chat({ go, userEmail }) {
       )}
       {tab === "como-funciona" && (
         <div className="tab-panel" style={{ maxWidth: 640 }}>
-          <p style={{ marginTop: 0 }}><strong style={{ color: C.gold }}>SIMPLE</strong> es tu consultor personal de Diseño Humano. Podés hacerle cualquier pregunta sobre cómo tomás decisiones, cómo te relacionás, cómo gestionás tu energía o cómo avanzar en tu trabajo.</p>
-          <p>No da respuestas genéricas. Todo lo que te diga está basado en tu diseño específico — tu tipo, autoridad, perfil y centros.</p>
-          <p style={{ marginBottom: 0 }}>Cuanto más contexto le des sobre tu situación concreta, mejor va a ser la respuesta. No hace falta que sepas nada de Diseño Humano para usarlo.</p>
+          {lang === "en" ? <>
+            <p style={{ marginTop: 0 }}><strong style={{ color: C.gold }}>SIMPLE</strong> is your personal Human Design consultant. Ask anything about how you make decisions, relate to others, manage your energy, or move forward in your work.</p>
+            <p>No generic answers. Everything is based on your specific design — your type, authority, profile and centers.</p>
+            <p style={{ marginBottom: 0 }}>The more context you give about your specific situation, the better the answer. You don't need to know anything about Human Design to use it.</p>
+          </> : <>
+            <p style={{ marginTop: 0 }}><strong style={{ color: C.gold }}>SIMPLE</strong> es tu consultor personal de Diseño Humano. Podés hacerle cualquier pregunta sobre cómo tomás decisiones, cómo te relacionás, cómo gestionás tu energía o cómo avanzar en tu trabajo.</p>
+            <p>No da respuestas genéricas. Todo lo que te diga está basado en tu diseño específico — tu tipo, autoridad, perfil y centros.</p>
+            <p style={{ marginBottom: 0 }}>Cuanto más contexto le des sobre tu situación concreta, mejor va a ser la respuesta. No hace falta que sepas nada de Diseño Humano para usarlo.</p>
+          </>}
         </div>
       )}
       <div style={{ flex: 1, maxWidth: 760, margin: "0 auto", width: "100%", padding: "0 1.5rem", display: "flex", flexDirection: "column" }}>
         <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", paddingRight: "1rem", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
           {msgs.length === 0 && (
             <div style={{ textAlign: "center", padding: "1.8rem 1rem", border: "1px solid rgba(184,154,78,.15)" }}>
-              <div style={{ fontSize: "1.9rem", fontWeight: 300, marginBottom: ".4rem", fontFamily: GEORGIA }}>Hola, <span style={{ color: C.gold, fontStyle: "italic" }}>{user.nombre}</span></div>
-              <div style={{ fontSize: ".9rem", color: C.dim, marginBottom: "1.5rem", lineHeight: 1.6 }}>Soy tu consultor personal de Diseño Humano.<br />Haceme cualquier pregunta.</div>
+              <div style={{ fontSize: "1.9rem", fontWeight: 300, marginBottom: ".4rem", fontFamily: GEORGIA }}>
+                {lang === "en" ? "Hi, " : "Hola, "}<span style={{ color: C.gold, fontStyle: "italic" }}>{user.nombre}</span>
+              </div>
+              <div style={{ fontSize: ".9rem", color: C.dim, marginBottom: "1.5rem", lineHeight: 1.6 }}>
+                {lang === "en" ? "I'm your personal Human Design consultant. Ask me anything." : "Soy tu consultor personal de Diseño Humano. Haceme cualquier pregunta."}
+              </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", justifyContent: "center" }}>
                 {CHIPS.map(c => (
                   <button key={c} onClick={() => send(c)} style={{ fontFamily: "monospace", fontSize: ".6rem", padding: ".4em .85em", border: "1px solid rgba(184,154,78,.25)", color: C.dim, cursor: "pointer", background: "transparent" }}
@@ -389,7 +429,7 @@ function Chat({ go, userEmail }) {
               ref={m.role === "assistant" && i === msgs.length - 1 ? lastAssistantRef : m.role === "user" && i === msgs.length - 1 ? lastUserRef : null}
               style={{ textAlign: m.role === "user" ? "right" : "left" }}>
               <div style={{ fontFamily: "monospace", fontSize: ".53rem", letterSpacing: ".3em", textTransform: "uppercase", marginBottom: ".3rem", color: m.role === "user" ? "rgba(240,235,224,.3)" : C.gold }}>
-                {m.role === "user" ? "Vos" : "SIMPLE"}
+                {m.role === "user" ? (lang === "en" ? "You" : "Vos") : "SIMPLE"}
               </div>
               <div style={m.role === "user" ? { fontSize: "1rem", fontStyle: "italic", color: "rgba(240,235,224,.55)", lineHeight: 1.7, fontFamily: NUNITO } : { fontSize: "1rem", color: C.txt, lineHeight: 1.85, fontFamily: NUNITO }}
                 dangerouslySetInnerHTML={{ __html: md(m.content) }} />
@@ -403,14 +443,15 @@ function Chat({ go, userEmail }) {
               </div>
             </div>
           )}
-          
         </div>
         <div style={{ padding: "1rem 0 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
-          <textarea style={{ flex: 1, background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: "Georgia,serif", fontSize: ".95rem", padding: ".6rem 0", outline: "none", resize: "none", minHeight: "2rem", lineHeight: 1.5 }}
-            value={input} placeholder="Hacé tu pregunta..."
+          <textarea style={{ flex: 1, background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: NUNITO, fontSize: ".95rem", padding: ".6rem 0", outline: "none", resize: "none", minHeight: "2rem", lineHeight: 1.5 }}
+            value={input} placeholder={lang === "en" ? "Ask your question..." : "Hacé tu pregunta..."}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} />
-          <button onClick={() => send()} disabled={loading || !input.trim()} style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1em", cursor: "pointer", textTransform: "uppercase", marginBottom: 2, opacity: loading || !input.trim() ? 0.3 : 1 }}>Enviar</button>
+          <button onClick={() => send()} disabled={loading || !input.trim()} style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1em", cursor: "pointer", textTransform: "uppercase", marginBottom: 2, opacity: loading || !input.trim() ? 0.3 : 1 }}>
+            {lang === "en" ? "Send" : "Enviar"}
+          </button>
         </div>
       </div>
     </div>
