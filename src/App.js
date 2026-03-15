@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 const SYSTEM_PROMPT = `Sos un consultor especializado en el método SIMPLE de Diseño Humano, con 15 años de experiencia asesorando a empresarios y directivos. Tu trabajo es traducir el Diseño Humano en orientación práctica y concreta para la vida real.
 
@@ -74,11 +74,12 @@ function Welcome({ go }) {
       <div style={logo}>SIMPLE</div>
       <div style={{ textAlign: "center", maxWidth: 560 }}>
         <div style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 300, lineHeight: 1.25, marginBottom: "1.4rem" }}>
-          Tu manual de instrucciones<br />
+          Tu manual de instrucciones<br/>
+
           <span style={{ color: C.gold, fontStyle: "italic" }}>personalizado.</span>
         </div>
         <div style={{ color: C.dim, fontSize: "1rem", lineHeight: 1.8, maxWidth: 460, margin: "0 auto .6rem" }}>
-          Conocé tu manera natural de tomar decisiones, vincularte con otros o de generar oportunidades sin esfuerzo.
+          Todo lo que necesitás saber sobre cómo funcionás.
         </div>
         <div style={{ color: "rgba(240,235,224,.3)", fontSize: ".85rem", fontFamily: "monospace", letterSpacing: ".05em", marginBottom: "2.5rem" }}>
           Sin respuestas genéricas. Creado a tu medida.
@@ -197,6 +198,16 @@ function Chat({ go }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const sys = SYSTEM_PROMPT + " DISEÑO: " + JSON.stringify(DEMO_USER);
+  const lastAssistantRef = React.useRef(null);
+  const chatContainerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (lastAssistantRef.current && chatContainerRef.current) {
+      const container = chatContainerRef.current;
+      const el = lastAssistantRef.current;
+      container.scrollTop = el.offsetTop - container.offsetTop - 20;
+    }
+  }, [msgs]);
 
   async function send(t) {
     const txt = t || input.trim();
@@ -236,7 +247,7 @@ function Chat({ go }) {
         ))}
       </div>
       <div style={{ flex: 1, maxWidth: 760, margin: "0 auto", width: "100%", padding: "0 1.5rem", display: "flex", flexDirection: "column" }}>
-        <div style={{ flex: 1, padding: "1.8rem 0", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
+        <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
           {msgs.length === 0 && (
             <div style={{ textAlign: "center", padding: "1.8rem 1rem", border: "1px solid rgba(184,154,78,.15)" }}>
               <div style={{ fontSize: "1.9rem", fontWeight: 300, marginBottom: ".4rem" }}>Hola, <span style={{ color: C.gold, fontStyle: "italic" }}>{DEMO_USER.nombre}</span></div>
@@ -253,7 +264,7 @@ function Chat({ go }) {
             </div>
           )}
           {msgs.map((m, i) => (
-            <div key={i} style={{ textAlign: m.role === "user" ? "right" : "left" }}>
+            <div key={i} ref={m.role === "assistant" && i === msgs.length - 1 ? lastAssistantRef : null} style={{ textAlign: m.role === "user" ? "right" : "left" }}>
               <div style={{ fontFamily: "monospace", fontSize: ".53rem", letterSpacing: ".3em", textTransform: "uppercase", marginBottom: ".3rem", color: m.role === "user" ? "rgba(240,235,224,.3)" : C.gold }}>
                 {m.role === "user" ? "Vos" : "SIMPLE"}
               </div>
@@ -269,7 +280,7 @@ function Chat({ go }) {
               </div>
             </div>
           )}
-          <div ref={el => el?.scrollIntoView({ behavior: "smooth" })} />
+          
         </div>
         <div style={{ padding: "1rem 0 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
           <textarea style={{ flex: 1, background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: "Georgia,serif", fontSize: ".95rem", padding: ".6rem 0", outline: "none", resize: "none", minHeight: "2rem", lineHeight: 1.5 }}
