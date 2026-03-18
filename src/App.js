@@ -311,7 +311,7 @@ function Login({ go, lang }) {
     const user = USERS[email.toLowerCase().trim()];
     if (!user) { setErr(lang === "en" ? "Email not registered in the prototype." : "Email no registrado en el prototipo."); return; }
     if (pass !== "demo") { setErr(lang === "en" ? "Wrong password. Use 'demo' for the prototype." : "Contraseña incorrecta. Usá 'demo' para el prototipo."); return; }
-    go("chat", email.toLowerCase().trim());
+    go("onboarding", email.toLowerCase().trim());
   }
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", fontFamily: NUNITO, color: C.txt }}>
@@ -340,12 +340,13 @@ function Login({ go, lang }) {
   );
 }
 
-function Chat({ go, userEmail, lang, setLang }) {
+function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, setProblema }) {
   const user = USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
   const [msgs, setMsgs] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(null);
+  const [panelOpen, setPanelOpen] = useState(false);
   const CHIPS = lang === "en" ? CHIPS_EN : CHIPS_ES;
 
   const EN_PROMPT = `You are a Human Design consultant specialized in the SIMPLE method, with 15 years of experience advising executives and entrepreneurs. Translate Human Design into practical, concrete guidance.
@@ -354,7 +355,8 @@ VOCABULARY — NEVER: vibrations, manifest, heal, soul mission, chakras, cosmic 
 STRUCTURE: 1) Anchor in their specific design 2) Practical consequence 3) Their specific trap/risk 4) One clear actionable.
 For vague questions, ask ONE clarifying question first.`;
 
-  const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user);
+  const contextoProblema = problema ? `\nPROBLEMA ACTIVO DEL USUARIO: "${problema.raiz}". Área: ${problema.area}. Desafíos en curso: ${desafios?.map((d,i) => `Desafío ${i+1}: ${d.titulo}`).join(", ")}.` : "";
+  const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user) + contextoProblema;
 
   const lastAssistantRef = React.useRef(null);
   const chatContainerRef = React.useRef(null);
@@ -405,6 +407,35 @@ For vague questions, ask ONE clarifying question first.`;
         .tab-panel { padding: 1.2rem 2rem; border-bottom: 1px solid rgba(184,154,78,.1); background: rgba(255,255,255,.02); font-size: .88rem; line-height: 1.8; color: rgba(240,235,224,.7); font-family: '${NUNITO}'; }
       `}</style>
 
+      {/* Panel de desafíos */}
+      {panelOpen && (
+        <div style={{ position: "fixed", top: 0, right: 0, width: "min(380px, 90vw)", height: "100vh", background: "#0f0f0f", borderLeft: "1px solid rgba(184,154,78,.2)", zIndex: 100, display: "flex", flexDirection: "column", padding: "2rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+            <div style={{ fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase" }}>{lang === "en" ? "Active challenge" : "Problema activo"}</div>
+            <button onClick={() => setPanelOpen(false)} style={{ background: "none", border: "none", color: C.dim, cursor: "pointer", fontSize: "1.2rem" }}>×</button>
+          </div>
+          {problema && (
+            <>
+              <div style={{ fontSize: ".9rem", lineHeight: 1.7, color: C.txt, marginBottom: "1.5rem", padding: "1rem", border: "1px solid rgba(184,154,78,.15)", background: "rgba(184,154,78,.04)" }}>{problema.raiz}</div>
+              <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: "1rem" }}>{lang === "en" ? "Your challenges" : "Tus desafíos"}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: ".8rem", flex: 1, overflowY: "auto" }}>
+                {desafios?.map((d, i) => (
+                  <div key={i} style={{ border: "1px solid rgba(184,154,78,.2)", padding: "1rem", background: "rgba(255,255,255,.02)" }}>
+                    <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".25em", color: C.gold, marginBottom: ".3rem", textTransform: "uppercase" }}>{lang === "en" ? `Challenge ${i+1}` : `Desafío ${i+1}`}</div>
+                    <div style={{ fontSize: ".88rem", fontWeight: 600, marginBottom: ".3rem" }}>{d.titulo}</div>
+                    <div style={{ fontSize: ".8rem", color: C.dim, lineHeight: 1.6 }}>{d.descripcion}</div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => { go("onboarding"); setPanelOpen(false); }}
+                style={{ marginTop: "1.2rem", background: "transparent", border: "1px solid rgba(184,154,78,.3)", color: C.dim, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".7em", cursor: "pointer", textTransform: "uppercase" }}>
+                {lang === "en" ? "Change problem" : "Cambiar problema"}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ padding: ".9rem 2rem", borderBottom: "1px solid rgba(184,154,78,.2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
@@ -413,7 +444,15 @@ For vague questions, ask ONE clarifying question first.`;
             {lang === "en" ? "Hi, " : "Hola, "}<span style={{ color: C.txt, fontWeight: 600 }}>{user.nombre}</span>
           </div>
         </div>
-        <button onClick={() => go("welcome")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>{lang === "en" ? "Sign out →" : "Salir →"}</button>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          {problema && (
+            <button onClick={() => setPanelOpen(true)}
+              style={{ background: "rgba(184,154,78,.08)", border: "1px solid rgba(184,154,78,.25)", color: C.gold, fontFamily: NUNITO, fontSize: ".75rem", padding: ".35em .9em", cursor: "pointer", borderRadius: 2, maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              🎯 {problema.area}
+            </button>
+          )}
+          <button onClick={() => go("welcome")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>{lang === "en" ? "Sign out →" : "Salir →"}</button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -544,10 +583,215 @@ For vague questions, ask ONE clarifying question first.`;
   );
 }
 
+const AREAS = [
+  { id: "trabajo", icon: "💼", label: "Trabajo y carrera", en: "Work & career" },
+  { id: "decisiones", icon: "🧭", label: "Decisiones importantes", en: "Important decisions" },
+  { id: "vinculos", icon: "🤝", label: "Vínculos y relaciones", en: "Relationships" },
+  { id: "energia", icon: "⚡", label: "Energía y bienestar", en: "Energy & wellbeing" },
+  { id: "dinero", icon: "🌱", label: "Dinero y proyectos", en: "Money & projects" },
+  { id: "direccion", icon: "🔭", label: "Dirección y propósito", en: "Direction & purpose" },
+];
+
+function Onboarding({ go, userEmail, lang, setProblema, setDesafios }) {
+  const user = USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
+  const [step, setStep] = useState(1);
+  const [area, setArea] = useState(null);
+  const [textoProblema, setTextoProblema] = useState("");
+  const [preguntaRaiz, setPreguntaRaiz] = useState("");
+  const [respuestaRaiz, setRespuestaRaiz] = useState("");
+  const [problemaFormulado, setProblemaFormulado] = useState("");
+  const [desafiosGenerados, setDesafiosGenerados] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const totalSteps = 6;
+
+  const es = lang !== "en";
+
+  async function generarPreguntaRaiz() {
+    setLoading(true);
+    const prompt = `El usuario es ${user.tipo}, perfil ${user.perfil}, autoridad ${user.autoridad}, no-self theme: ${user.no_self_theme}.
+Área elegida: ${area}. Problema declarado: "${textoProblema}".
+Generá UNA sola pregunta corta y directa (máximo 20 palabras) para ir a la raíz del problema. Sin tecnicismos de Diseño Humano. En ${es ? "español con voseo rioplatense" : "American English"}.
+Respondé SOLO con la pregunta, sin explicaciones.`;
+    try {
+      const r = await fetch("/api/chat", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 100, system: "Sos un consultor de Diseño Humano. Respondé solo lo que se pide, sin texto extra.", messages: [{ role: "user", content: prompt }] })
+      });
+      const d = await r.json();
+      setPreguntaRaiz(d?.content?.[0]?.text || "");
+    } catch { setPreguntaRaiz(es ? "¿Qué es lo que más te pesa de esta situación?" : "What weighs on you most about this situation?"); }
+    setLoading(false);
+    setStep(4);
+  }
+
+  async function generarProblemaYDesafios() {
+    setLoading(true);
+    const prompt = `El usuario es ${user.tipo}, perfil ${user.perfil}, autoridad ${user.autoridad}, centros: ${JSON.stringify(user.centros)}, no-self theme: ${user.no_self_theme}, motivación: ${user.variables?.motivación}, cruz: ${user.cruz_encarnacion?.tipo}.
+Área: ${area}. Problema declarado: "${textoProblema}". Respuesta a la pregunta de raíz: "${respuestaRaiz}".
+
+Respondé SOLO con un JSON válido sin markdown, con esta estructura exacta:
+{
+  "problema_raiz": "formulación del problema raíz en lenguaje cotidiano, sin tecnicismos de DH, máximo 2 oraciones",
+  "desafios": [
+    {"titulo": "título corto", "descripcion": "una oración concreta y accionable"},
+    {"titulo": "título corto", "descripcion": "una oración concreta y accionable"},
+    {"titulo": "título corto", "descripcion": "una oración concreta y accionable"}
+  ]
+}`;
+    try {
+      const r = await fetch("/api/chat", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 500, system: "Respondé SOLO con JSON válido, sin markdown ni texto extra.", messages: [{ role: "user", content: prompt }] })
+      });
+      const d = await r.json();
+      const text = d?.content?.[0]?.text || "{}";
+      const parsed = JSON.parse(text.replace(/```json|```/g, "").trim());
+      setProblemaFormulado(parsed.problema_raiz || "");
+      setDesafiosGenerados(parsed.desafios || []);
+    } catch { 
+      setProblemaFormulado(es ? "Hay algo en esta área que no está funcionando como esperás." : "Something in this area isn't working as you'd expect.");
+      setDesafiosGenerados([
+        { titulo: es ? "Observar" : "Observe", descripcion: es ? "Prestá atención a qué situaciones específicas te generan fricción esta semana." : "Notice which specific situations create friction for you this week." },
+        { titulo: es ? "Identificar" : "Identify", descripcion: es ? "Buscá un patrón en lo que te frena." : "Look for a pattern in what's holding you back." },
+        { titulo: es ? "Probar" : "Try", descripcion: es ? "Cambiá una sola cosa pequeña y observá qué pasa." : "Change one small thing and observe what happens." }
+      ]);
+    }
+    setLoading(false);
+    setStep(5);
+  }
+
+  function confirmarYEntrar(ajustar = false) {
+    if (ajustar) { setStep(5); return; }
+    setProblema({ area, texto: textoProblema, raiz: problemaFormulado });
+    setDesafios(desafiosGenerados.map((d, i) => ({ ...d, id: i + 1, estado: "activo" })));
+    go("chat");
+  }
+
+  const containerStyle = { background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", fontFamily: NUNITO, color: C.txt };
+  const cardStyle = { width: "100%", maxWidth: 520, border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)" };
+  const titleStyle = { fontSize: "1.4rem", fontWeight: 300, fontFamily: GEORGIA, marginBottom: ".6rem", lineHeight: 1.3 };
+  const subtitleStyle = { color: C.dim, fontSize: ".9rem", lineHeight: 1.7, marginBottom: "1.8rem" };
+  const btnPrimary = { background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%", marginTop: "1.2rem" };
+  const btnSecondary = { background: "transparent", color: C.dim, border: "1px solid rgba(184,154,78,.3)", fontFamily: "monospace", fontSize: ".63rem", letterSpacing: ".25em", padding: ".7em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%", marginTop: ".6rem" };
+
+  const ProgressBar = () => (
+    <div style={{ width: "100%", maxWidth: 520, marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: ".4rem" }}>
+        <span style={{ fontFamily: "monospace", fontSize: ".5rem", color: C.dim, letterSpacing: ".2em" }}>{es ? "PASO" : "STEP"} {Math.min(step, totalSteps)} {es ? "DE" : "OF"} {totalSteps}</span>
+      </div>
+      <div style={{ height: 2, background: "rgba(184,154,78,.15)", borderRadius: 1 }}>
+        <div style={{ height: "100%", background: C.gold, borderRadius: 1, width: `${(Math.min(step, totalSteps) / totalSteps) * 100}%`, transition: "width .4s ease" }} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={containerStyle}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap');`}</style>
+      <div style={{ ...logo, marginBottom: "1.5rem" }}>SIMPLE</div>
+      <ProgressBar />
+
+      {/* PASO 1 — Bienvenida */}
+      {step === 1 && (
+        <div style={cardStyle}>
+          <div style={titleStyle}>{es ? `Hola, ${user.nombre}.` : `Hi, ${user.nombre}.`}</div>
+          <div style={titleStyle}>{es ? "Antes de empezar, vamos a identificar en qué querés enfocarte." : "Before we start, let's identify what you want to focus on."}</div>
+          <div style={subtitleStyle}>{es ? "Son 5 pasos simples. Al final vas a tener un problema claro y tres desafíos concretos para trabajar." : "5 simple steps. At the end you'll have a clear problem and three concrete challenges to work on."}</div>
+          <button style={btnPrimary} onClick={() => setStep(2)}>{es ? "Empezar" : "Let's go"}</button>
+        </div>
+      )}
+
+      {/* PASO 2 — Área */}
+      {step === 2 && (
+        <div style={cardStyle}>
+          <div style={titleStyle}>{es ? "¿En qué parte de tu vida sentís más fricción ahora mismo?" : "Where do you feel the most friction in your life right now?"}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".7rem", margin: "1.2rem 0" }}>
+            {AREAS.map(a => (
+              <button key={a.id} onClick={() => setArea(es ? a.label : a.en)}
+                style={{ background: area === (es ? a.label : a.en) ? "rgba(184,154,78,.15)" : "transparent", border: `1px solid ${area === (es ? a.label : a.en) ? C.gold : "rgba(184,154,78,.25)"}`, color: area === (es ? a.label : a.en) ? C.gold : C.dim, fontFamily: NUNITO, fontSize: ".85rem", padding: ".8em 1em", cursor: "pointer", textAlign: "left", borderRadius: 2, transition: "all .2s" }}>
+                <span style={{ marginRight: ".5rem" }}>{a.icon}</span>{es ? a.label : a.en}
+              </button>
+            ))}
+          </div>
+          <button style={{ ...btnPrimary, opacity: area ? 1 : 0.4 }} onClick={() => area && setStep(3)} disabled={!area}>{es ? "Continuar" : "Continue"}</button>
+        </div>
+      )}
+
+      {/* PASO 3 — Problema */}
+      {step === 3 && (
+        <div style={cardStyle}>
+          <div style={titleStyle}>{es ? "Contame en tus palabras cuál creés que es el problema que tenés, o qué te gustaría que en el futuro sea diferente." : "Tell me in your own words what you think the problem is, or what you'd like to be different in the future."}</div>
+          <textarea
+            style={{ width: "100%", background: "transparent", border: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: NUNITO, fontSize: ".95rem", padding: "1rem", outline: "none", resize: "none", lineHeight: 1.7, marginTop: ".5rem", minHeight: 120, boxSizing: "border-box" }}
+            placeholder={es ? "Escribí lo que sea, no hay respuesta correcta..." : "Write anything, there's no right answer..."}
+            value={textoProblema} onChange={e => setTextoProblema(e.target.value)} />
+          <button style={{ ...btnPrimary, opacity: textoProblema.length > 10 ? 1 : 0.4 }}
+            onClick={() => textoProblema.length > 10 && generarPreguntaRaiz()}
+            disabled={textoProblema.length <= 10 || loading}>
+            {loading ? (es ? "Procesando..." : "Processing...") : (es ? "Continuar" : "Continue")}
+          </button>
+        </div>
+      )}
+
+      {/* PASO 4 — Pregunta de raíz */}
+      {step === 4 && (
+        <div style={cardStyle}>
+          <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, marginBottom: "1rem", textTransform: "uppercase" }}>{es ? "Una pregunta más" : "One more question"}</div>
+          <div style={titleStyle}>{preguntaRaiz}</div>
+          <textarea
+            style={{ width: "100%", background: "transparent", border: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: NUNITO, fontSize: ".95rem", padding: "1rem", outline: "none", resize: "none", lineHeight: 1.7, marginTop: ".5rem", minHeight: 100, boxSizing: "border-box" }}
+            placeholder={es ? "Tu respuesta..." : "Your answer..."}
+            value={respuestaRaiz} onChange={e => setRespuestaRaiz(e.target.value)} />
+          <button style={{ ...btnPrimary, opacity: respuestaRaiz.length > 5 ? 1 : 0.4 }}
+            onClick={() => respuestaRaiz.length > 5 && generarProblemaYDesafios()}
+            disabled={respuestaRaiz.length <= 5 || loading}>
+            {loading ? (es ? "Analizando tu diseño..." : "Analyzing your design...") : (es ? "Continuar" : "Continue")}
+          </button>
+        </div>
+      )}
+
+      {/* PASO 5 — Confirmación del problema raíz */}
+      {step === 5 && (
+        <div style={cardStyle}>
+          <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, marginBottom: "1rem", textTransform: "uppercase" }}>{es ? "Lo que escucho" : "What I'm hearing"}</div>
+          <div style={{ fontSize: "1.05rem", lineHeight: 1.8, marginBottom: "1.5rem", color: C.txt }}>{problemaFormulado}</div>
+          <div style={{ color: C.dim, fontSize: ".85rem", marginBottom: "1.5rem" }}>{es ? "¿Esto refleja bien lo que querés trabajar?" : "Does this reflect what you want to work on?"}</div>
+          <button style={btnPrimary} onClick={() => setStep(6)}>{es ? "Sí, seguimos" : "Yes, let's continue"}</button>
+          <button style={btnSecondary} onClick={() => setStep(3)}>{es ? "No del todo, ajustar" : "Not quite, adjust"}</button>
+        </div>
+      )}
+
+      {/* PASO 6 — Los 3 Desafíos */}
+      {step === 6 && (
+        <div style={{ ...cardStyle, maxWidth: 560 }}>
+          <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, marginBottom: "1rem", textTransform: "uppercase" }}>{es ? "Tus 3 desafíos" : "Your 3 challenges"}</div>
+          <div style={titleStyle}>{es ? "Estos son los pasos concretos para empezar a trabajar tu problema." : "These are the concrete steps to start working on your challenge."}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem", margin: "1.5rem 0" }}>
+            {desafiosGenerados.map((d, i) => (
+              <div key={i} style={{ border: "1px solid rgba(184,154,78,.2)", padding: "1.2rem 1.5rem", background: "rgba(184,154,78,.04)" }}>
+                <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, marginBottom: ".4rem", textTransform: "uppercase" }}>{es ? `Desafío ${i + 1}` : `Challenge ${i + 1}`}</div>
+                <div style={{ fontSize: ".95rem", fontWeight: 600, marginBottom: ".3rem" }}>{d.titulo}</div>
+                <div style={{ fontSize: ".85rem", color: C.dim, lineHeight: 1.6 }}>{d.descripcion}</div>
+              </div>
+            ))}
+          </div>
+          <button style={btnPrimary} onClick={() => confirmarYEntrar(false)}>{es ? "Empezar a trabajar" : "Start working"}</button>
+        </div>
+      )}
+
+      <div style={{ marginTop: "1.5rem", fontFamily: "monospace", fontSize: ".5rem", color: "rgba(240,235,224,.2)", letterSpacing: ".15em" }}>
+        SIMPLE · 2026
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [screen, setScreen] = useState("welcome");
   const [email, setEmail] = useState("");
   const [lang, setLang] = useState("es");
+  const [problema, setProblema] = useState(null);
+  const [desafios, setDesafios] = useState([]);
   function go(s, e) { if (e) setEmail(e); setScreen(s); }
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
@@ -556,7 +800,8 @@ export default function App() {
       {screen === "register" && <Register go={go} lang={lang} />}
       {screen === "pending" && <Pending email={email} go={go} lang={lang} />}
       {screen === "login" && <Login go={go} lang={lang} />}
-      {screen === "chat" && <Chat go={go} userEmail={email} lang={lang} setLang={setLang} />}
+      {screen === "onboarding" && <Onboarding go={go} userEmail={email} lang={lang} setProblema={setProblema} setDesafios={setDesafios} />}
+      {screen === "chat" && <Chat go={go} userEmail={email} lang={lang} setLang={setLang} problema={problema} desafios={desafios} setDesafios={setDesafios} setProblema={setProblema} />}
     </div>
   );
 }
