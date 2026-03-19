@@ -154,6 +154,15 @@ const USERS = {
     variables: { motivación: "Hope", perspectiva: "Perspective 6", entorno: "Caves", digestión: "Calm" },
     fecha_nacimiento: "1984-05-06", lugar_nacimiento: "San Andrés de Giles, Argentina"
   },
+  "nico@becoming.com.ar": {
+    nombre: "Nicolás", apellido: "Pimentel", tipo: "Generador Manifestante", autoridad: "Emocional (Plexo Solar)", perfil: "6/3",
+    estrategia: "Responder y luego informar", firma: "Satisfacción/Paz", no_self_theme: "Frustración/Enojo", definicion: "Simple",
+    centros: { Raiz: "defined", G: "undefined", Ajna: "undefined", Bazo: "defined", Cabeza: "undefined", Garganta: "defined", Corazon: "undefined", Emocional: "defined", Sacral: "defined" },
+    canales_definidos: ["20-34", "12-22", "18-58", "42-53"],
+    variables: { perspectiva: "Perspective 4", digestión: "Calm", entorno: "Valleys", motivación: "Innocence" },
+    cruz_encarnacion: { tipo: "Left Angle" },
+    fecha_nacimiento: "1975-03-13", lugar_nacimiento: "Buenos Aires, Argentina"
+  },
   "dejatellevaralegremente@gmail.com": {
     nombre: "Mercedes", apellido: "González", tipo: "Proyector", autoridad: "Esplénica (Bazo)", perfil: "4/1",
     estrategia: "Esperar invitación", firma: "Éxito", no_self_theme: "Amargura", definicion: "Simple",
