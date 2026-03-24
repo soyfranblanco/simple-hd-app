@@ -154,6 +154,15 @@ const USERS = {
     variables: { motivación: "Hope", perspectiva: "Perspective 6", entorno: "Caves", digestión: "Calm" },
     fecha_nacimiento: "1984-05-06", lugar_nacimiento: "San Andrés de Giles, Argentina"
   },
+  "gonzalo@chatcenter.net": {
+    nombre: "Gonzalo Ezequiel", apellido: "Baez Veglia", tipo: "Manifestador", autoridad: "Emocional (Plexo Solar)", perfil: "5/1",
+    estrategia: "Informar antes de actuar", firma: "Paz", no_self_theme: "Enojo", definicion: "Simple",
+    centros: { Ajna: "defined", Bazo: "defined", G: "undefined", Sacral: "undefined", Emocional: "defined", Cabeza: "defined", Garganta: "defined", Raiz: "undefined", Corazon: "defined" },
+    canales_definidos: ["26-44", "40-37", "64-47", "11-56", "35-36"],
+    variables: { perspectiva: "Perspective 3", motivación: "Hope", digestión: "Cold", entorno: "Mountains" },
+    cruz_encarnacion: { tipo: "Left Angle" },
+    fecha_nacimiento: "1979-02-28", lugar_nacimiento: "Córdoba, Argentina"
+  },
   "nico@becoming.com.ar": {
     nombre: "Nicolás", apellido: "Pimentel", tipo: "Generador Manifestante", autoridad: "Emocional (Plexo Solar)", perfil: "6/3",
     estrategia: "Responder y luego informar", firma: "Satisfacción/Paz", no_self_theme: "Frustración/Enojo", definicion: "Simple",
