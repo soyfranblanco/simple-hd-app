@@ -689,7 +689,7 @@ Respondé SOLO con la pregunta, sin explicaciones.`;
 
 Respondé SOLO con un JSON válido sin markdown, con esta estructura exacta:
 {
-  "problema_raiz": "formulación del problema raíz en lenguaje cotidiano, sin tecnicismos de DH, máximo 2 oraciones",
+  "problema_raiz": "formulación del problema raíz en lenguaje cotidiano, sin tecnicismos de DH, máximo 2 oraciones. MUY IMPORTANTE: formulalo como una propuesta tentativa que invite a confirmar, no como una afirmación. Empezá con frases como: 'Podría ser que...', '¿Sería justo decir que...?', 'Parecería que...', 'Lo que describís suena a que...'",
   "desafios": [
     {"titulo": "título corto", "descripcion": "una oración concreta y accionable"},
     {"titulo": "título corto", "descripcion": "una oración concreta y accionable"},
