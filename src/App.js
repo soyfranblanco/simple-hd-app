@@ -360,12 +360,18 @@ function Login({ go, lang }) {
 
 function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, setProblema }) {
   const user = USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
-  const [msgs, setMsgs] = useState([]);
+  const [chatMode, setChatMode] = useState("general"); // "general" | "d1" | "d2" | "d3"
+  const [allMsgs, setAllMsgs] = useState({ general: [], d1: [], d2: [], d3: [] });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const CHIPS = lang === "en" ? CHIPS_EN : CHIPS_ES;
+
+  const msgs = allMsgs[chatMode];
+  function setMsgs(newMsgs) {
+    setAllMsgs(prev => ({ ...prev, [chatMode]: typeof newMsgs === "function" ? newMsgs(prev[chatMode]) : newMsgs }));
+  }
 
   const EN_PROMPT = `You are a Human Design consultant specialized in the SIMPLE method, with 15 years of experience advising executives and entrepreneurs. Translate Human Design into practical, concrete guidance.
 TONE: Direct, warm, no spiritual language. American English. No generic intros. Always end with a practical rule or action.
@@ -373,8 +379,12 @@ VOCABULARY — NEVER: vibrations, manifest, heal, soul mission, chakras, cosmic 
 STRUCTURE: 1) Anchor in their specific design 2) Practical consequence 3) Their specific trap/risk 4) One clear actionable.
 For vague questions, ask ONE clarifying question first.`;
 
-  const contextoProblema = problema ? `\nPROBLEMA ACTIVO DEL USUARIO: "${problema.raiz}". Área: ${problema.area}. Desafíos en curso: ${desafios?.map((d,i) => `Desafío ${i+1}: ${d.titulo}`).join(", ")}.` : "";
-  const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user) + contextoProblema;
+  const getDesafioIdx = () => chatMode === "d1" ? 0 : chatMode === "d2" ? 1 : chatMode === "d3" ? 2 : -1;
+  const desafioActual = getDesafioIdx() >= 0 ? desafios?.[getDesafioIdx()] : null;
+
+  const contextoBase = problema ? `\nPROBLEMA ACTIVO: "${problema.raiz}". Área: ${problema.area}.` : "";
+  const contextoDesafio = desafioActual ? `\nESTÁS TRABAJANDO ESPECÍFICAMENTE EL DESAFÍO: "${desafioActual.titulo}" — ${desafioActual.descripcion}. Enfocá todas tus respuestas en ayudar a la persona a avanzar en este desafío concreto.` : "";
+  const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user) + contextoBase + contextoDesafio;
 
   const lastAssistantRef = React.useRef(null);
   const chatContainerRef = React.useRef(null);
@@ -473,6 +483,25 @@ For vague questions, ask ONE clarifying question first.`;
         </div>
       </div>
 
+      {/* Chat mode selector */}
+      {problema && desafios?.length > 0 && (
+        <div style={{ borderBottom: "1px solid rgba(184,154,78,.2)", display: "flex", alignItems: "center", paddingLeft: "1rem", gap: ".3rem", overflowX: "auto" }}>
+          <button onClick={() => setChatMode("general")}
+            style={{ background: chatMode === "general" ? "rgba(184,154,78,.12)" : "none", border: chatMode === "general" ? "1px solid rgba(184,154,78,.4)" : "1px solid transparent", color: chatMode === "general" ? C.gold : C.dim, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5rem .9rem", cursor: "pointer", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+            {lang === "en" ? "General" : "General"}
+          </button>
+          {desafios.map((d, i) => {
+            const mode = `d${i+1}`;
+            return (
+              <button key={mode} onClick={() => setChatMode(mode)}
+                style={{ background: chatMode === mode ? "rgba(184,154,78,.12)" : "none", border: chatMode === mode ? "1px solid rgba(184,154,78,.4)" : "1px solid transparent", color: chatMode === mode ? C.gold : C.dim, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5rem .9rem", cursor: "pointer", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                {lang === "en" ? `Challenge ${i+1}` : `Desafío ${i+1}`} · {d.titulo}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Tabs */}
       <div style={{ borderBottom: "1px solid rgba(184,154,78,.15)", display: "flex", alignItems: "center", paddingLeft: "1rem", gap: ".2rem" }}>
         {[
@@ -547,21 +576,32 @@ For vague questions, ask ONE clarifying question first.`;
         <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", paddingRight: "1rem", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
           {msgs.length === 0 && (
             <div style={{ textAlign: "center", padding: "1.8rem 1rem", border: "1px solid rgba(184,154,78,.15)" }}>
-              <div style={{ fontSize: "1.9rem", fontWeight: 300, marginBottom: ".4rem", fontFamily: GEORGIA }}>
-                {lang === "en" ? "Hi, " : "Hola, "}<span style={{ color: C.gold, fontStyle: "italic" }}>{user.nombre}</span>
-              </div>
-              <div style={{ fontSize: ".9rem", color: C.dim, marginBottom: "1.5rem", lineHeight: 1.6 }}>
-                {lang === "en" ? "I'm your personal Human Design consultant. Ask me anything." : "Soy tu consultor personal de Diseño Humano. Haceme cualquier pregunta."}
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", justifyContent: "center" }}>
-                {CHIPS.map(c => (
-                  <button key={c} onClick={() => send(c)} style={{ fontFamily: "monospace", fontSize: ".6rem", padding: ".4em .85em", border: "1px solid rgba(184,154,78,.25)", color: C.dim, cursor: "pointer", background: "transparent" }}
-                    onMouseEnter={e => { e.target.style.borderColor = C.gold; e.target.style.color = "#d4b96a"; }}
-                    onMouseLeave={e => { e.target.style.borderColor = "rgba(184,154,78,.25)"; e.target.style.color = C.dim; }}>
-                    {c}
-                  </button>
-                ))}
-              </div>
+              {desafioActual ? (
+                <>
+                  <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, marginBottom: ".8rem", textTransform: "uppercase" }}>{lang === "en" ? `Challenge ${getDesafioIdx()+1}` : `Desafío ${getDesafioIdx()+1}`}</div>
+                  <div style={{ fontSize: "1.3rem", fontWeight: 300, marginBottom: ".4rem", fontFamily: GEORGIA }}>{desafioActual.titulo}</div>
+                  <div style={{ fontSize: ".9rem", color: C.dim, marginBottom: "1.5rem", lineHeight: 1.6, maxWidth: 440, margin: "0 auto 1.5rem" }}>{desafioActual.descripcion}</div>
+                  <div style={{ fontSize: ".8rem", color: C.dim }}>{lang === "en" ? "Ask anything related to this challenge." : "Haceme preguntas relacionadas a este desafío."}</div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: "1.9rem", fontWeight: 300, marginBottom: ".4rem", fontFamily: GEORGIA }}>
+                    {lang === "en" ? "Hi, " : "Hola, "}<span style={{ color: C.gold, fontStyle: "italic" }}>{user.nombre}</span>
+                  </div>
+                  <div style={{ fontSize: ".9rem", color: C.dim, marginBottom: "1.5rem", lineHeight: 1.6 }}>
+                    {lang === "en" ? "I'm your personal Human Design consultant. Ask me anything." : "Soy tu consultor personal de Diseño Humano. Haceme cualquier pregunta."}
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", justifyContent: "center" }}>
+                    {CHIPS.map(c => (
+                      <button key={c} onClick={() => send(c)} style={{ fontFamily: "monospace", fontSize: ".6rem", padding: ".4em .85em", border: "1px solid rgba(184,154,78,.25)", color: C.dim, cursor: "pointer", background: "transparent" }}
+                        onMouseEnter={e => { e.target.style.borderColor = C.gold; e.target.style.color = "#d4b96a"; }}
+                        onMouseLeave={e => { e.target.style.borderColor = "rgba(184,154,78,.25)"; e.target.style.color = C.dim; }}>
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
           {msgs.map((m, i) => (
@@ -716,6 +756,7 @@ Respondé SOLO con un JSON válido sin markdown, con esta estructura exacta:
           <div style={titleStyle}>{es ? "Antes de empezar, vamos a identificar en qué querés enfocarte." : "Before we start, let's identify what you want to focus on."}</div>
           <div style={subtitleStyle}>{es ? "Son 5 pasos simples. Al final vas a tener un problema claro y tres desafíos concretos para trabajar." : "5 simple steps. At the end you'll have a clear problem and three concrete challenges to work on."}</div>
           <button style={btnPrimary} onClick={() => setStep(2)}>{es ? "Empezar" : "Let's go"}</button>
+          <button style={btnSecondary} onClick={() => go("chat")}>{es ? "Saltar e ir al chat" : "Skip and go to chat"}</button>
         </div>
       )}
 
