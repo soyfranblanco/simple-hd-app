@@ -258,6 +258,52 @@ function Welcome({ go, lang, setLang }) {
   );
 }
 
+function CityInput({ value, onChange, placeholder }) {
+  const [sugerencias, setSugerencias] = useState([]);
+  const [show, setShow] = useState(false);
+  const timer = React.useRef(null);
+
+  async function buscar(q) {
+    if (q.length < 3) { setSugerencias([]); return; }
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&featuretype=city&accept-language=es`);
+      const data = await r.json();
+      setSugerencias(data.map(d => d.display_name));
+    } catch { setSugerencias([]); }
+  }
+
+  function handleChange(e) {
+    onChange(e.target.value);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => buscar(e.target.value), 400);
+    setShow(true);
+  }
+
+  function elegir(ciudad) {
+    onChange(ciudad);
+    setSugerencias([]);
+    setShow(false);
+  }
+
+  return (
+    <div style={{ position: "relative", marginBottom: "1.3rem" }}>
+      <input style={{ ...inp, marginBottom: 0 }} placeholder={placeholder} value={value} onChange={handleChange} onBlur={() => setTimeout(() => setShow(false), 200)} onFocus={() => sugerencias.length > 0 && setShow(true)} />
+      {show && sugerencias.length > 0 && (
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#1a1a1a", border: "1px solid rgba(184,154,78,.3)", zIndex: 50, maxHeight: 200, overflowY: "auto" }}>
+          {sugerencias.map((s, i) => (
+            <div key={i} onClick={() => elegir(s)}
+              style={{ padding: ".7rem 1rem", fontSize: ".82rem", color: C.dim, cursor: "pointer", borderBottom: "1px solid rgba(184,154,78,.1)" }}
+              onMouseEnter={e => e.target.style.color = C.gold}
+              onMouseLeave={e => e.target.style.color = C.dim}>
+              {s}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Register({ go, lang, setDynamicUser }) {
   const [f, setF] = useState({ nom: "", ape: "", email: "", tel: "", fecha: "", hora: "", lugar: "", pass: "" });
   const [err, setErr] = useState("");
@@ -271,7 +317,7 @@ function Register({ go, lang, setDynamicUser }) {
     setLoading(true);
     setErr("");
     try {
-      const r = await fetch("https://web-production-dcb26.up.railway.app/api/chart", {
+      const r = await fetch("/api/hd", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -284,7 +330,6 @@ function Register({ go, lang, setDynamicUser }) {
       });
       const data = await r.json();
       if (data.error) { setErr("Error al calcular tu diseño: " + data.error); setLoading(false); return; }
-      // Guardar el diseño calculado como usuario dinámico
       setDynamicUser({ ...data, email: f.email });
       go("onboarding", f.email);
     } catch {
@@ -313,7 +358,7 @@ function Register({ go, lang, setDynamicUser }) {
             <div><label style={lbl}>Hora *</label><input style={inp} type="time" value={f.hora} onChange={e => u("hora", e.target.value)} /></div>
           </div>
           <label style={lbl}>Lugar de nacimiento *</label>
-          <input style={inp} placeholder="Ciudad, País" value={f.lugar} onChange={e => u("lugar", e.target.value)} />
+          <CityInput value={f.lugar} onChange={v => u("lugar", v)} placeholder="Ciudad, País" />
           <label style={lbl}>Contraseña *</label>
           <Eye value={f.pass} onChange={e => u("pass", e.target.value)} />
           <button onClick={ok} disabled={loading} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading ? 0.7 : 1 }}>
