@@ -258,13 +258,39 @@ function Welcome({ go, lang, setLang }) {
   );
 }
 
-function Register({ go }) {
+function Register({ go, lang, setDynamicUser }) {
   const [f, setF] = useState({ nom: "", ape: "", email: "", tel: "", fecha: "", hora: "", lugar: "", pass: "" });
   const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
   const u = (k, v) => setF(p => ({ ...p, [k]: v }));
-  function ok() {
-    if (!f.nom || !f.ape || !f.email || !f.fecha || !f.hora || !f.lugar || !f.pass) { setErr("Completá todos los campos obligatorios."); return; }
-    go("pending", f.email);
+
+  async function ok() {
+    if (!f.nom || !f.ape || !f.email || !f.fecha || !f.hora || !f.lugar || !f.pass) {
+      setErr("Completá todos los campos obligatorios."); return;
+    }
+    setLoading(true);
+    setErr("");
+    try {
+      const r = await fetch("https://web-production-dcb26.up.railway.app/api/chart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: f.nom,
+          apellido: f.ape,
+          birth_date: f.fecha,
+          birth_time: f.hora,
+          ciudad: f.lugar
+        })
+      });
+      const data = await r.json();
+      if (data.error) { setErr("Error al calcular tu diseño: " + data.error); setLoading(false); return; }
+      // Guardar el diseño calculado como usuario dinámico
+      setDynamicUser({ ...data, email: f.email });
+      go("onboarding", f.email);
+    } catch {
+      setErr("No se pudo conectar con el servidor. Intentá de nuevo.");
+    }
+    setLoading(false);
   }
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "2.5rem 2rem", fontFamily: "Georgia,serif", color: C.txt, overflowY: "auto" }}>
@@ -290,7 +316,9 @@ function Register({ go }) {
           <input style={inp} placeholder="Ciudad, País" value={f.lugar} onChange={e => u("lugar", e.target.value)} />
           <label style={lbl}>Contraseña *</label>
           <Eye value={f.pass} onChange={e => u("pass", e.target.value)} />
-          <button onClick={ok} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>Registrarme</button>
+          <button onClick={ok} disabled={loading} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading ? 0.7 : 1 }}>
+            {loading ? "Calculando tu diseño..." : "Registrarme"}
+          </button>
         </div>
         <div style={{ textAlign: "center", margin: "1.2rem 0", color: C.dim, fontFamily: "monospace", fontSize: ".7rem" }}>
           ¿Ya tenés cuenta? <button onClick={() => go("login")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".63rem" }}>Ingresá acá</button>
@@ -358,8 +386,8 @@ function Login({ go, lang }) {
   );
 }
 
-function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, setProblema }) {
-  const user = USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
+function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, setProblema, dynamicUser }) {
+  const user = dynamicUser || USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
   const [chatMode, setChatMode] = useState("general"); // "general" | "d1" | "d2" | "d3"
   const [allMsgs, setAllMsgs] = useState({ general: [], d1: [], d2: [], d3: [] });
   const [input, setInput] = useState("");
@@ -439,7 +467,7 @@ For vague questions, ask ONE clarifying question first.`;
       {panelOpen && (
         <div style={{ position: "fixed", top: 0, right: 0, width: "min(380px, 90vw)", height: "100vh", background: "#0f0f0f", borderLeft: "1px solid rgba(184,154,78,.2)", zIndex: 100, display: "flex", flexDirection: "column", padding: "2rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-            <div style={{ fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase" }}>{lang === "en" ? "Active challenge" : "Problema activo"}</div>
+            <div style={{ fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase" }}>{lang === "en" ? "Active problem" : "Problema activo"}</div>
             <button onClick={() => setPanelOpen(false)} style={{ background: "none", border: "none", color: C.dim, cursor: "pointer", fontSize: "1.2rem" }}>×</button>
           </div>
           {problema && (
@@ -447,13 +475,23 @@ For vague questions, ask ONE clarifying question first.`;
               <div style={{ fontSize: ".9rem", lineHeight: 1.7, color: C.txt, marginBottom: "1.5rem", padding: "1rem", border: "1px solid rgba(184,154,78,.15)", background: "rgba(184,154,78,.04)" }}>{problema.raiz}</div>
               <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: "1rem" }}>{lang === "en" ? "Your challenges" : "Tus desafíos"}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: ".8rem", flex: 1, overflowY: "auto" }}>
-                {desafios?.map((d, i) => (
-                  <div key={i} style={{ border: "1px solid rgba(184,154,78,.2)", padding: "1rem", background: "rgba(255,255,255,.02)" }}>
-                    <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".25em", color: C.gold, marginBottom: ".3rem", textTransform: "uppercase" }}>{lang === "en" ? `Challenge ${i+1}` : `Desafío ${i+1}`}</div>
-                    <div style={{ fontSize: ".88rem", fontWeight: 600, marginBottom: ".3rem" }}>{d.titulo}</div>
-                    <div style={{ fontSize: ".8rem", color: C.dim, lineHeight: 1.6 }}>{d.descripcion}</div>
-                  </div>
-                ))}
+                {/* General chat option */}
+                <button onClick={() => { setChatMode("general"); setPanelOpen(false); }}
+                  style={{ border: `1px solid ${chatMode === "general" ? C.gold : "rgba(184,154,78,.2)"}`, padding: "1rem", background: chatMode === "general" ? "rgba(184,154,78,.08)" : "rgba(255,255,255,.02)", cursor: "pointer", textAlign: "left" }}>
+                  <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".25em", color: C.gold, marginBottom: ".3rem", textTransform: "uppercase" }}>{lang === "en" ? "General chat" : "Chat general"}</div>
+                  <div style={{ fontSize: ".85rem", color: C.dim, lineHeight: 1.5 }}>{lang === "en" ? "Talk freely about any topic." : "Hablá libremente sobre cualquier tema."}</div>
+                </button>
+                {desafios?.map((d, i) => {
+                  const mode = `d${i+1}`;
+                  return (
+                    <button key={i} onClick={() => { setChatMode(mode); setPanelOpen(false); }}
+                      style={{ border: `1px solid ${chatMode === mode ? C.gold : "rgba(184,154,78,.2)"}`, padding: "1rem", background: chatMode === mode ? "rgba(184,154,78,.08)" : "rgba(255,255,255,.02)", cursor: "pointer", textAlign: "left" }}>
+                      <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".25em", color: C.gold, marginBottom: ".3rem", textTransform: "uppercase" }}>{lang === "en" ? `Challenge ${i+1}` : `Desafío ${i+1}`}</div>
+                      <div style={{ fontSize: ".88rem", fontWeight: 600, marginBottom: ".3rem", color: C.txt }}>{d.titulo}</div>
+                      <div style={{ fontSize: ".8rem", color: C.dim, lineHeight: 1.5 }}>{d.descripcion}</div>
+                    </button>
+                  );
+                })}
               </div>
               <button onClick={() => { go("onboarding"); setPanelOpen(false); }}
                 style={{ marginTop: "1.2rem", background: "transparent", border: "1px solid rgba(184,154,78,.3)", color: C.dim, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".7em", cursor: "pointer", textTransform: "uppercase" }}>
@@ -475,32 +513,13 @@ For vague questions, ask ONE clarifying question first.`;
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           {problema && (
             <button onClick={() => setPanelOpen(true)}
-              style={{ background: "rgba(184,154,78,.08)", border: "1px solid rgba(184,154,78,.25)", color: C.gold, fontFamily: NUNITO, fontSize: ".75rem", padding: ".35em .9em", cursor: "pointer", borderRadius: 2, maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              🎯 {problema.area}
+              style={{ background: "rgba(184,154,78,.08)", border: "1px solid rgba(184,154,78,.25)", color: C.gold, fontFamily: NUNITO, fontSize: ".75rem", padding: ".35em .9em", cursor: "pointer", borderRadius: 2, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              🎯 {chatMode === "general" ? problema.area : `${lang === "en" ? "Challenge" : "Desafío"} ${chatMode.replace("d","")}: ${desafios?.[parseInt(chatMode.replace("d",""))-1]?.titulo || ""}`}
             </button>
           )}
           <button onClick={() => go("welcome")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>{lang === "en" ? "Sign out →" : "Salir →"}</button>
         </div>
       </div>
-
-      {/* Chat mode selector */}
-      {problema && desafios?.length > 0 && (
-        <div style={{ borderBottom: "1px solid rgba(184,154,78,.2)", display: "flex", alignItems: "center", paddingLeft: "1rem", gap: ".3rem", overflowX: "auto" }}>
-          <button onClick={() => setChatMode("general")}
-            style={{ background: chatMode === "general" ? "rgba(184,154,78,.12)" : "none", border: chatMode === "general" ? "1px solid rgba(184,154,78,.4)" : "1px solid transparent", color: chatMode === "general" ? C.gold : C.dim, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5rem .9rem", cursor: "pointer", textTransform: "uppercase", whiteSpace: "nowrap" }}>
-            {lang === "en" ? "General" : "General"}
-          </button>
-          {desafios.map((d, i) => {
-            const mode = `d${i+1}`;
-            return (
-              <button key={mode} onClick={() => setChatMode(mode)}
-                style={{ background: chatMode === mode ? "rgba(184,154,78,.12)" : "none", border: chatMode === mode ? "1px solid rgba(184,154,78,.4)" : "1px solid transparent", color: chatMode === mode ? C.gold : C.dim, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5rem .9rem", cursor: "pointer", textTransform: "uppercase", whiteSpace: "nowrap" }}>
-                {lang === "en" ? `Challenge ${i+1}` : `Desafío ${i+1}`} · {d.titulo}
-              </button>
-            );
-          })}
-        </div>
-      )}
 
       {/* Tabs */}
       <div style={{ borderBottom: "1px solid rgba(184,154,78,.15)", display: "flex", alignItems: "center", paddingLeft: "1rem", gap: ".2rem" }}>
@@ -650,8 +669,8 @@ const AREAS = [
   { id: "direccion", icon: "🔭", label: "Dirección y propósito", en: "Direction & purpose" },
 ];
 
-function Onboarding({ go, userEmail, lang, setProblema, setDesafios }) {
-  const user = USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
+function Onboarding({ go, userEmail, lang, setProblema, setDesafios, dynamicUser }) {
+  const user = dynamicUser || USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
   const [step, setStep] = useState(1);
   const [area, setArea] = useState(null);
   const [textoProblema, setTextoProblema] = useState("");
@@ -851,16 +870,17 @@ export default function App() {
   const [lang, setLang] = useState("es");
   const [problema, setProblema] = useState(null);
   const [desafios, setDesafios] = useState([]);
+  const [dynamicUser, setDynamicUser] = useState(null);
   function go(s, e) { if (e) setEmail(e); setScreen(s); }
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
       <style>{"*{box-sizing:border-box;margin:0;padding:0}body{background:#080808}input,textarea{color:#f0ebe0!important;-webkit-text-fill-color:#f0ebe0!important;caret-color:#b89a4e}input::placeholder,textarea::placeholder{color:rgba(240,235,224,.3)!important;-webkit-text-fill-color:rgba(240,235,224,.3)!important}input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #080808 inset!important;-webkit-text-fill-color:#f0ebe0!important}"}</style>
       {screen === "welcome" && <Welcome go={go} lang={lang} setLang={setLang} />}
-      {screen === "register" && <Register go={go} lang={lang} />}
+      {screen === "register" && <Register go={go} lang={lang} setDynamicUser={setDynamicUser} />}
       {screen === "pending" && <Pending email={email} go={go} lang={lang} />}
       {screen === "login" && <Login go={go} lang={lang} />}
-      {screen === "onboarding" && <Onboarding go={go} userEmail={email} lang={lang} setProblema={setProblema} setDesafios={setDesafios} />}
-      {screen === "chat" && <Chat go={go} userEmail={email} lang={lang} setLang={setLang} problema={problema} desafios={desafios} setDesafios={setDesafios} setProblema={setProblema} />}
+      {screen === "onboarding" && <Onboarding go={go} userEmail={email} lang={lang} setProblema={setProblema} setDesafios={setDesafios} dynamicUser={dynamicUser} />}
+      {screen === "chat" && <Chat go={go} userEmail={email} lang={lang} setLang={setLang} problema={problema} desafios={desafios} setDesafios={setDesafios} setProblema={setProblema} dynamicUser={dynamicUser} />}
     </div>
   );
 }
