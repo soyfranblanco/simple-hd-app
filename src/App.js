@@ -185,19 +185,17 @@ const USERS = {
 const CHIPS_ES = [
   "¿Cómo tomo decisiones importantes?",
   "¿Cuál es mi superpoder en el trabajo?",
-  "¿Por qué me agoto tan seguido?",
-  "¿Cómo atraigo mejores oportunidades?",
-  "¿Cómo comunico mi servicio?",
-  "¿Cómo me vinculo mejor con los demás?"
+  "¿Cómo soluciono este problema?",
+  "¿Qué más puedo conocer de mi diseño?",
+  "¿Cómo puedo sacarle más provecho a esta herramienta?"
 ];
 
 const CHIPS_EN = [
   "How do I make important decisions?",
   "What's my superpower at work?",
-  "Why do I get exhausted so often?",
-  "How do I attract better opportunities?",
-  "How do I communicate my value?",
-  "How do I relate better with others?"
+  "How do I solve this problem?",
+  "What else can I learn about my design?",
+  "How can I get the most out of this tool?"
 ];
 
 const C = { bg: "#080808", gold: "#b89a4e", txt: "#f0ebe0", dim: "rgba(240,235,224,0.45)" };
@@ -354,14 +352,21 @@ function Register({ go, lang, setDynamicUser }) {
           <label style={lbl}>Teléfono</label>
           <input style={inp} type="tel" placeholder="+54 11 0000 0000" value={f.tel} onChange={e => u("tel", e.target.value)} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <div><label style={lbl}>Fecha *</label><input style={inp} type="date" value={f.fecha} onChange={e => u("fecha", e.target.value)} /></div>
-            <div><label style={lbl}>Hora *</label><input style={inp} type="time" value={f.hora} onChange={e => u("hora", e.target.value)} /></div>
+            <div><label style={lbl}>Fecha *</label><input style={{ ...inp, colorScheme: "dark" }} type="date" value={f.fecha} onChange={e => u("fecha", e.target.value)} /></div>
+            <div><label style={lbl}>Hora *</label><input style={{ ...inp, colorScheme: "dark" }} type="time" value={f.hora} onChange={e => u("hora", e.target.value)} /></div>
           </div>
           <label style={lbl}>Lugar de nacimiento *</label>
           <CityInput value={f.lugar} onChange={v => u("lugar", v)} placeholder="Ciudad, País" />
           <label style={lbl}>Contraseña *</label>
           <Eye value={f.pass} onChange={e => u("pass", e.target.value)} />
-          <button onClick={ok} disabled={loading} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading ? 0.7 : 1 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: ".7rem", marginBottom: "1.2rem" }}>
+            <input type="checkbox" id="tyc" checked={f.tyc || false} onChange={e => u("tyc", e.target.checked)}
+              style={{ marginTop: ".2rem", accentColor: C.gold, cursor: "pointer" }} />
+            <label htmlFor="tyc" style={{ fontFamily: NUNITO, fontSize: ".78rem", color: C.dim, lineHeight: 1.6, cursor: "pointer" }}>
+              Acepto los <span style={{ color: C.gold }}>términos y condiciones</span> de uso de SIMPLE. Esta herramienta es orientativa y no reemplaza el consejo profesional.
+            </label>
+          </div>
+          <button onClick={ok} disabled={loading || !f.tyc} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading || !f.tyc ? 0.5 : 1 }}>
             {loading ? "Calculando tu diseño..." : "Registrarme"}
           </button>
         </div>
@@ -653,7 +658,7 @@ For vague questions, ask ONE clarifying question first.`;
                     {lang === "en" ? "Hi, " : "Hola, "}<span style={{ color: C.gold, fontStyle: "italic" }}>{user.nombre}</span>
                   </div>
                   <div style={{ fontSize: ".9rem", color: C.dim, marginBottom: "1.5rem", lineHeight: 1.6 }}>
-                    {lang === "en" ? "I'm your personal Human Design consultant. Ask me anything." : "Soy tu consultor personal de Diseño Humano. Haceme cualquier pregunta."}
+                    {lang === "en" ? "I'm an AI connected to your design. Every answer is based on your unique way of functioning — not generalities. What I don't know for certain, I don't make up." : "Soy una inteligencia artificial conectada a tu diseño. Cada respuesta está basada en tu forma única de funcionar — no en generalidades. Lo que no sé con certeza, no lo invento."}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", justifyContent: "center" }}>
                     {CHIPS.map(c => (
