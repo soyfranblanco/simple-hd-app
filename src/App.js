@@ -313,21 +313,38 @@ function Register({ go, lang, setDynamicUser }) {
     setLoading(true);
     setErr("");
     try {
+      // 1. Calcular diseño
       const r = await fetch("/api/hd", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: f.nom, apellido: f.ape, birth_date: f.fecha, birth_time: f.hora, ciudad: f.lugar })
+      });
+      const diseno = await r.json();
+      if (diseno.error) { setErr("Error al calcular tu diseño: " + diseno.error); setLoading(false); return; }
+
+      // 2. Guardar en Supabase
+      const dbR = await fetch("/api/db/usuarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Prefer": "return=minimal" },
         body: JSON.stringify({
+          email: f.email.toLowerCase().trim(),
           nombre: f.nom,
           apellido: f.ape,
-          birth_date: f.fecha,
-          birth_time: f.hora,
-          ciudad: f.lugar
+          password_hash: f.pass, // En producción usar bcrypt
+          diseno: diseno
         })
       });
-      const data = await r.json();
-      if (data.error) { setErr("Error al calcular tu diseño: " + data.error); setLoading(false); return; }
-      setDynamicUser({ ...data, email: f.email });
-      go("onboarding", f.email);
+
+      if (!dbR.ok && dbR.status !== 409) {
+        const dbErr = await dbR.json();
+        // Si ya existe el email, intentamos igual
+        if (!dbErr.message?.includes("duplicate")) {
+          setErr("Error al crear la cuenta. Intentá de nuevo."); setLoading(false); return;
+        }
+      }
+
+      setDynamicUser({ ...diseno, email: f.email.toLowerCase().trim() });
+      go("onboarding", f.email.toLowerCase().trim());
     } catch {
       setErr("No se pudo conectar con el servidor. Intentá de nuevo.");
     }
@@ -396,16 +413,42 @@ function Pending({ email, go }) {
   );
 }
 
-function Login({ go, lang }) {
+function Login({ go, lang, setDynamicUser }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [err, setErr] = useState("");
-  function ok() {
+  const [loading, setLoading] = useState(false);
+
+  async function ok() {
     if (!email || !pass) { setErr(lang === "en" ? "Please enter email and password." : "Completá email y contraseña."); return; }
-    const user = USERS[email.toLowerCase().trim()];
-    if (!user) { setErr(lang === "en" ? "Email not registered in the prototype." : "Email no registrado en el prototipo."); return; }
-    if (pass !== "demo") { setErr(lang === "en" ? "Wrong password. Use 'demo' for the prototype." : "Contraseña incorrecta. Usá 'demo' para el prototipo."); return; }
-    go("onboarding", email.toLowerCase().trim());
+    const emailClean = email.toLowerCase().trim();
+
+    // Primero intentar usuarios hardcodeados (demo)
+    const demoUser = USERS[emailClean];
+    if (demoUser && pass === "demo") {
+      go("onboarding", emailClean);
+      return;
+    }
+
+    // Luego intentar Supabase
+    setLoading(true);
+    setErr("");
+    try {
+      const r = await fetch(`/api/db/usuarios?email=eq.${encodeURIComponent(emailClean)}&select=*`);
+      const users = await r.json();
+      if (!users || users.length === 0) {
+        setErr(lang === "en" ? "Email not found." : "Email no encontrado."); setLoading(false); return;
+      }
+      const user = users[0];
+      if (user.password_hash !== pass) {
+        setErr(lang === "en" ? "Wrong password." : "Contraseña incorrecta."); setLoading(false); return;
+      }
+      setDynamicUser({ ...user.diseno, email: emailClean, rol: user.rol });
+      go("onboarding", emailClean);
+    } catch {
+      setErr(lang === "en" ? "Connection error. Try again." : "Error de conexión. Intentá de nuevo.");
+    }
+    setLoading(false);
   }
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", fontFamily: NUNITO, color: C.txt }}>
@@ -419,8 +462,8 @@ function Login({ go, lang }) {
           <input style={inp} type="email" placeholder="tu@email.com" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
           <label style={lbl}>{lang === "en" ? "Password" : "Contraseña"}</label>
           <Eye value={pass} onChange={e => setPass(e.target.value)} placeholder={lang === "en" ? "Your password" : "Tu contraseña"} onKeyDown={e => e.key === "Enter" && ok()} />
-          <button onClick={ok} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>
-            {lang === "en" ? "Sign in" : "Ingresar"}
+          <button onClick={ok} disabled={loading} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading ? 0.7 : 1 }}>
+            {loading ? "..." : (lang === "en" ? "Sign in" : "Ingresar")}
           </button>
         </div>
         <div style={{ textAlign: "center", margin: "1.2rem 0", color: C.dim, fontFamily: "monospace", fontSize: ".7rem" }}>
@@ -826,7 +869,7 @@ export default function App() {
       {screen === "welcome" && <Welcome go={go} lang={lang} setLang={setLang} />}
       {screen === "register" && <Register go={go} lang={lang} setDynamicUser={setDynamicUser} />}
       {screen === "pending" && <Pending email={email} go={go} lang={lang} />}
-      {screen === "login" && <Login go={go} lang={lang} />}
+      {screen === "login" && <Login go={go} lang={lang} setDynamicUser={setDynamicUser} />}
       {screen === "onboarding" && <Onboarding go={go} userEmail={email} lang={lang} setProblema={setProblema} setDesafios={setDesafios} dynamicUser={dynamicUser} />}
       {screen === "chat" && <Chat go={go} userEmail={email} lang={lang} setLang={setLang} problema={problema} desafios={desafios} setDesafios={setDesafios} setProblema={setProblema} dynamicUser={dynamicUser} />}
     </div>
