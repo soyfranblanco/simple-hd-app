@@ -185,7 +185,6 @@ const USERS = {
 const CHIPS_ES = [
   "¿Cómo tomo decisiones importantes?",
   "¿Cuál es mi superpoder en el trabajo?",
-  "¿Cómo soluciono este problema?",
   "¿Qué más puedo conocer de mi diseño?",
   "¿Cómo puedo sacarle más provecho a esta herramienta?"
 ];
@@ -193,7 +192,6 @@ const CHIPS_ES = [
 const CHIPS_EN = [
   "How do I make important decisions?",
   "What's my superpower at work?",
-  "How do I solve this problem?",
   "What else can I learn about my design?",
   "How can I get the most out of this tool?"
 ];
@@ -444,7 +442,10 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(null);
   const [panelOpen, setPanelOpen] = useState(false);
-  const CHIPS = lang === "en" ? CHIPS_EN : CHIPS_ES;
+  const baseChips = lang === "en" ? CHIPS_EN : CHIPS_ES;
+  const CHIPS = problema?.texto
+    ? [lang === "en" ? `How do I work on: "${problema.texto.slice(0, 40)}${problema.texto.length > 40 ? "..." : ""}"?` : `¿Cómo trabajo esto: "${problema.texto.slice(0, 40)}${problema.texto.length > 40 ? "..." : ""}"?`, ...baseChips]
+    : baseChips;
 
   const msgs = allMsgs[chatMode];
   function setMsgs(newMsgs) {
@@ -561,12 +562,6 @@ For vague questions, ask ONE clarifying question first.`;
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          {problema && (
-            <button onClick={() => setPanelOpen(true)}
-              style={{ background: "rgba(184,154,78,.08)", border: "1px solid rgba(184,154,78,.25)", color: C.gold, fontFamily: NUNITO, fontSize: ".75rem", padding: ".35em .9em", cursor: "pointer", borderRadius: 2, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              🎯 {chatMode === "general" ? problema.area : `${lang === "en" ? "Challenge" : "Desafío"} ${chatMode.replace("d","")}: ${desafios?.[parseInt(chatMode.replace("d",""))-1]?.titulo || ""}`}
-            </button>
-          )}
           <button onClick={() => go("welcome")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>{lang === "en" ? "Sign out →" : "Salir →"}</button>
         </div>
       </div>
@@ -776,7 +771,7 @@ Respondé SOLO con un JSON válido sin markdown:
           {es ? `Hola, ${user.nombre}.` : `Hi, ${user.nombre}.`}
         </div>
         <div style={{ color: C.dim, fontSize: ".9rem", lineHeight: 1.7, marginBottom: "1.8rem" }}>
-          {es ? "Podés empezar a chatear directamente, o contarnos en qué querés enfocarte para que las respuestas sean más útiles." : "You can start chatting directly, or tell us what you want to focus on so answers are more relevant."}
+          {es ? "Podés empezar a chatear directamente, o especificar un tema en el cual enfocarte para que las respuestas sean bien específicas." : "You can start chatting directly, or specify a topic to focus on so answers are more specific."}
         </div>
 
         {/* Área opcional */}
