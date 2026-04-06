@@ -817,13 +817,6 @@ Respondé SOLO con un JSON válido sin markdown:
   );
 }
 
-      <div style={{ marginTop: "1.5rem", fontFamily: "monospace", fontSize: ".5rem", color: "rgba(240,235,224,.2)", letterSpacing: ".15em" }}>
-        SIMPLE · 2026
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   const [screen, setScreen] = useState("welcome");
   const [email, setEmail] = useState("");
