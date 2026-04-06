@@ -322,10 +322,15 @@ function Register({ go, lang, setDynamicUser }) {
       const diseno = await r.json();
       if (diseno.error) { setErr("Error al calcular tu diseño: " + diseno.error); setLoading(false); return; }
 
-      // 2. Guardar en Supabase
-      const dbR = await fetch("/api/db/usuarios", {
+      // 2. Guardar en Supabase directamente
+      const dbR = await fetch("https://ebczaoptweskqzuzrmls.supabase.co/rest/v1/usuarios", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Prefer": "return=minimal" },
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc",
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc",
+          "Prefer": "return=minimal"
+        },
         body: JSON.stringify({
           email: f.email.toLowerCase().trim(),
           nombre: f.nom,
@@ -434,7 +439,12 @@ function Login({ go, lang, setDynamicUser }) {
     setLoading(true);
     setErr("");
     try {
-      const r = await fetch(`/api/db/usuarios?email=eq.${encodeURIComponent(emailClean)}&select=*`);
+      const r = await fetch(`https://ebczaoptweskqzuzrmls.supabase.co/rest/v1/usuarios?email=eq.${encodeURIComponent(emailClean)}&select=*`, {
+        headers: {
+          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc",
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc"
+        }
+      });
       const users = await r.json();
       if (!users || users.length === 0) {
         setErr(lang === "en" ? "Email not found." : "Email no encontrado."); setLoading(false); return;
