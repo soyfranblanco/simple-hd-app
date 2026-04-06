@@ -330,23 +330,23 @@ function Register({ go, lang, setDynamicUser }) {
           email: f.email.toLowerCase().trim(),
           nombre: f.nom,
           apellido: f.ape,
-          password_hash: f.pass, // En producción usar bcrypt
+          password_hash: f.pass,
           diseno: diseno
         })
       });
 
-      if (!dbR.ok && dbR.status !== 409) {
-        const dbErr = await dbR.json();
-        // Si ya existe el email, intentamos igual
-        if (!dbErr.message?.includes("duplicate")) {
-          setErr("Error al crear la cuenta. Intentá de nuevo."); setLoading(false); return;
+      if (!dbR.ok) {
+        const dbErr = await dbR.json().catch(() => ({}));
+        if (dbErr.message?.includes("duplicate") || dbErr.code === "23505") {
+          setErr("Ese email ya está registrado. Ingresá con tu contraseña."); setLoading(false); return;
         }
+        setErr("Error al crear la cuenta: " + (dbErr.message || dbErr.error || dbR.status)); setLoading(false); return;
       }
 
       setDynamicUser({ ...diseno, email: f.email.toLowerCase().trim() });
       go("onboarding", f.email.toLowerCase().trim());
-    } catch {
-      setErr("No se pudo conectar con el servidor. Intentá de nuevo.");
+    } catch (e) {
+      setErr("Error: " + (e?.message || "No se pudo conectar con el servidor."));
     }
     setLoading(false);
   }
