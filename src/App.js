@@ -986,7 +986,212 @@ Respondé SOLO con un JSON válido sin markdown:
   );
 }
 
+const ADMIN_EMAIL = "soyfranblanco@gmail.com";
+const ADMIN_PASS = "soyadmin";
+
+function AdminLogin({ onLogin }) {
+  const [email, setEmail] = useState("");
+  const [pass, setPass] = useState("");
+  const [err, setErr] = useState("");
+
+  function ok() {
+    if (email.toLowerCase().trim() === ADMIN_EMAIL && pass === ADMIN_PASS) {
+      onLogin();
+    } else {
+      setErr("Credenciales incorrectas.");
+    }
+  }
+
+  return (
+    <div style={{ background: C.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: NUNITO, color: C.txt }}>
+      <div style={{ width: "100%", maxWidth: 380, border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)" }}>
+        <div style={{ ...logo, marginBottom: "1.5rem" }}>SIMPLE</div>
+        <div style={{ fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".3em", color: C.gold, marginBottom: "1.5rem" }}>ADMIN ACCESS</div>
+        {err && <div style={{ color: "#c06040", fontFamily: "monospace", fontSize: ".63rem", marginBottom: ".8rem" }}>{err}</div>}
+        <label style={lbl}>Email</label>
+        <input style={inp} type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
+        <label style={lbl}>Contraseña</label>
+        <Eye value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
+        <button onClick={ok} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%", marginTop: ".5rem" }}>
+          Ingresar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AdminPanel() {
+  const [authed, setAuthed] = useState(false);
+  const [usuarios, setUsuarios] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [msgs, setMsgs] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [nota, setNota] = useState("");
+  const [notas, setNotas] = useState({});
+  const [view, setView] = useState("lista"); // "lista" | "chat"
+
+  React.useEffect(() => {
+    if (!authed) return;
+    async function cargar() {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?select=email,nombre,apellido,diseno,created_at&order=created_at.desc`, {
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+      });
+      const data = await r.json();
+      setUsuarios(Array.isArray(data) ? data : []);
+    }
+    cargar();
+  }, [authed]);
+
+  async function seleccionar(u) {
+    setSelected(u);
+    setMsgs([]);
+    setView("chat");
+    // Cargar notas guardadas
+    const notaGuardada = notas[u.email] || "";
+    setNota(notaGuardada);
+  }
+
+  async function send() {
+    if (!input.trim() || loading || !selected) return;
+    const txt = input.trim();
+    setInput("");
+    const next = [...msgs, { role: "user", content: txt }];
+    setMsgs(next);
+    setLoading(true);
+    const sys = SYSTEM_PROMPT + "\nDISEÑO DE LA PERSONA CON QUIEN ESTÁS TRABAJANDO: " + JSON.stringify(selected.diseno) + "\nEres el asistente del consultor Fran Blanco. Estás ayudando a Fran a preparar o analizar el perfil de este cliente.";
+    try {
+      const r = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: sys, messages: next })
+      });
+      const d = await r.json();
+      setMsgs([...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }]);
+    } catch {
+      setMsgs([...next, { role: "assistant", content: "Error de conexión." }]);
+    }
+    setLoading(false);
+  }
+
+  function guardarNota() {
+    setNotas(prev => ({ ...prev, [selected.email]: nota }));
+    alert("Nota guardada.");
+  }
+
+  if (!authed) return <AdminLogin onLogin={() => setAuthed(true)} />;
+
+  const s = { background: C.bg, minHeight: "100vh", fontFamily: NUNITO, color: C.txt };
+  const header = { padding: "1rem 2rem", borderBottom: "1px solid rgba(184,154,78,.2)", display: "flex", alignItems: "center", justifyContent: "space-between" };
+
+  return (
+    <div style={s}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap');`}</style>
+      <div style={header}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <div style={{ ...logo, marginBottom: 0 }}>SIMPLE</div>
+          <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold }}>ADMIN</div>
+        </div>
+        {view === "chat" && (
+          <button onClick={() => setView("lista")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
+        )}
+      </div>
+
+      {view === "lista" && (
+        <div style={{ maxWidth: 800, margin: "2rem auto", padding: "0 2rem" }}>
+          <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, marginBottom: "1.2rem" }}>
+            {usuarios.length} USUARIO{usuarios.length !== 1 ? "S" : ""}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
+            {usuarios.map((u, i) => (
+              <button key={i} onClick={() => seleccionar(u)}
+                style={{ background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.15)", padding: "1.2rem 1.5rem", cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = C.gold}
+                onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(184,154,78,.15)"}>
+                <div>
+                  <div style={{ fontSize: ".95rem", fontWeight: 600, color: C.txt, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
+                  <div style={{ fontSize: ".78rem", color: C.dim }}>{u.email}</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontFamily: "monospace", fontSize: ".55rem", color: C.gold }}>{u.diseno?.tipo}</div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: C.dim }}>Perfil {u.diseno?.perfil}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {view === "chat" && selected && (
+        <div style={{ display: "flex", height: "calc(100vh - 60px)" }}>
+          {/* Panel izquierdo — info del cliente */}
+          <div style={{ width: 280, borderRight: "1px solid rgba(184,154,78,.15)", padding: "1.5rem", overflowY: "auto", flexShrink: 0 }}>
+            <div style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: ".3rem" }}>{selected.nombre} {selected.apellido}</div>
+            <div style={{ fontSize: ".78rem", color: C.dim, marginBottom: "1.2rem" }}>{selected.email}</div>
+            {[["Tipo", selected.diseno?.tipo], ["Autoridad", selected.diseno?.autoridad], ["Perfil", selected.diseno?.perfil], ["Estrategia", selected.diseno?.estrategia], ["Firma", selected.diseno?.firma], ["No-self", selected.diseno?.no_self_theme]].map(([l, v]) => v && (
+              <div key={l} style={{ marginBottom: ".7rem" }}>
+                <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".15rem" }}>{l}</div>
+                <div style={{ fontSize: ".82rem" }}>{v}</div>
+              </div>
+            ))}
+            <div style={{ borderTop: "1px solid rgba(184,154,78,.15)", marginTop: "1.2rem", paddingTop: "1.2rem" }}>
+              <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".5rem" }}>Mis notas</div>
+              <textarea value={nota} onChange={e => setNota(e.target.value)}
+                style={{ width: "100%", background: "rgba(255,255,255,.03)", border: "1px solid rgba(184,154,78,.2)", color: C.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 100, boxSizing: "border-box", marginBottom: ".5rem" }}
+                placeholder="Notas privadas sobre este cliente..." />
+              <button onClick={guardarNota} style={{ background: "transparent", border: "1px solid rgba(184,154,78,.3)", color: C.gold, fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".5em 1em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>
+                Guardar nota
+              </button>
+            </div>
+          </div>
+
+          {/* Chat */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+              {msgs.length === 0 && (
+                <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem" }}>
+                  Chateá con el diseño de {selected.nombre}. Las respuestas están basadas en su perfil completo.
+                </div>
+              )}
+              {msgs.map((m, i) => (
+                <div key={i} style={{ textAlign: m.role === "user" ? "right" : "left" }}>
+                  <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: m.role === "user" ? C.dim : C.gold, marginBottom: ".25rem", textTransform: "uppercase" }}>
+                    {m.role === "user" ? "Fran" : "SIMPLE"}
+                  </div>
+                  <div style={{ fontSize: ".9rem", lineHeight: 1.8, color: m.role === "user" ? "rgba(240,235,224,.6)" : C.txt, fontStyle: m.role === "user" ? "italic" : "normal" }}
+                    dangerouslySetInnerHTML={{ __html: md(m.content) }} />
+                </div>
+              ))}
+              {loading && (
+                <div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: C.gold, marginBottom: ".25rem" }}>SIMPLE</div>
+                  <div style={{ display: "flex", gap: 5 }}>
+                    {[0,1,2].map(i => <div key={i} style={{ width: 5, height: 5, background: C.gold, borderRadius: "50%", animation: `p 1.4s ${i*.2}s infinite ease-in-out` }} />)}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem" }}>
+              <textarea value={input} onChange={e => setInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+                style={{ flex: 1, background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".5rem 0", outline: "none", resize: "none", lineHeight: 1.5 }}
+                placeholder={`Preguntá sobre el diseño de ${selected.nombre}...`} rows={1} />
+              <button onClick={send} disabled={loading || !input.trim()}
+                style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1em", cursor: "pointer", textTransform: "uppercase", opacity: loading || !input.trim() ? 0.3 : 1 }}>
+                Enviar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
+  const isAdmin = window.location.pathname === "/admin";
+  if (isAdmin) return <AdminPanel />;
+
   const [screen, setScreen] = useState("welcome");
   const [email, setEmail] = useState("");
   const [lang, setLang] = useState("es");
