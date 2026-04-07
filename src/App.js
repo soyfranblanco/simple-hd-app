@@ -487,10 +487,29 @@ function Login({ go, lang, setDynamicUser }) {
   );
 }
 
+const SUPABASE_URL = "https://ebczaoptweskqzuzrmls.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc";
+
+async function dbFetch(endpoint, options = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Prefer": "return=representation",
+      ...options.headers
+    }
+  });
+  return res.json().catch(() => ({}));
+}
+
 function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, setProblema, dynamicUser }) {
   const user = dynamicUser || USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
-  const [chatMode, setChatMode] = useState("general"); // "general" | "d1" | "d2" | "d3"
+  const [chatMode, setChatMode] = useState("general");
   const [allMsgs, setAllMsgs] = useState({ general: [], d1: [], d2: [], d3: [] });
+  const [convIds, setConvIds] = useState({ general: null, d1: null, d2: null, d3: null });
+  const [historial, setHistorial] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(null);
@@ -503,6 +522,58 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
   const msgs = allMsgs[chatMode];
   function setMsgs(newMsgs) {
     setAllMsgs(prev => ({ ...prev, [chatMode]: typeof newMsgs === "function" ? newMsgs(prev[chatMode]) : newMsgs }));
+  }
+
+  // Cargar conversación activa y historial al entrar
+  React.useEffect(() => {
+    if (!userEmail) return;
+    async function cargarConversaciones() {
+      try {
+        const data = await dbFetch(`conversaciones?usuario_email=eq.${encodeURIComponent(userEmail)}&order=updated_at.desc&limit=20`);
+        if (!Array.isArray(data)) return;
+        setHistorial(data);
+        // Cargar la más reciente de cada modo
+        ["general", "d1", "d2", "d3"].forEach(modo => {
+          const conv = data.find(c => c.modo === modo);
+          if (conv?.mensajes?.length > 0) {
+            setAllMsgs(prev => ({ ...prev, [modo]: conv.mensajes }));
+            setConvIds(prev => ({ ...prev, [modo]: conv.id }));
+          }
+        });
+      } catch {}
+    }
+    cargarConversaciones();
+  }, [userEmail]);
+
+  // Guardar conversación en Supabase después de cada respuesta
+  async function guardarConversacion(mensajes) {
+    try {
+      const convId = convIds[chatMode];
+      if (convId) {
+        await dbFetch(`conversaciones?id=eq.${convId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ mensajes, updated_at: new Date().toISOString() })
+        });
+      } else {
+        const result = await dbFetch("conversaciones", {
+          method: "POST",
+          body: JSON.stringify({
+            usuario_email: userEmail,
+            modo: chatMode,
+            problema: problema || null,
+            mensajes
+          })
+        });
+        if (Array.isArray(result) && result[0]?.id) {
+          setConvIds(prev => ({ ...prev, [chatMode]: result[0].id }));
+        }
+      }
+    } catch {}
+  }
+
+  async function nuevaConversacion() {
+    setAllMsgs(prev => ({ ...prev, [chatMode]: [] }));
+    setConvIds(prev => ({ ...prev, [chatMode]: null }));
   }
 
   const EN_PROMPT = `You are a Human Design consultant specialized in the SIMPLE method, with 15 years of experience advising executives and entrepreneurs. Translate Human Design into practical, concrete guidance.
@@ -551,8 +622,12 @@ For vague questions, ask ONE clarifying question first.`;
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: sys, messages: next })
       });
       const d = await r.json();
-      setMsgs([...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }]);
-    } catch { setMsgs([...next, { role: "assistant", content: lang === "en" ? "Connection error." : "Error de conexión." }]); }
+      const finalMsgs = [...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }];
+      setMsgs(finalMsgs);
+      await guardarConversacion(finalMsgs);
+    } catch {
+      setMsgs([...next, { role: "assistant", content: lang === "en" ? "Connection error." : "Error de conexión." }]);
+    }
     setLoading(false);
   }
 
@@ -601,6 +676,35 @@ For vague questions, ask ONE clarifying question first.`;
                 style={{ marginTop: "1.2rem", background: "transparent", border: "1px solid rgba(184,154,78,.3)", color: C.dim, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".7em", cursor: "pointer", textTransform: "uppercase" }}>
                 {lang === "en" ? "Change problem" : "Cambiar problema"}
               </button>
+              <button onClick={() => { nuevaConversacion(); setPanelOpen(false); }}
+                style={{ marginTop: ".5rem", background: "transparent", border: "1px solid rgba(184,154,78,.15)", color: C.dim, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".7em", cursor: "pointer", textTransform: "uppercase" }}>
+                {lang === "en" ? "New conversation" : "Nueva conversación"}
+              </button>
+              {historial.length > 0 && (
+                <div style={{ marginTop: "1.5rem" }}>
+                  <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".8rem" }}>
+                    {lang === "en" ? "Previous conversations" : "Conversaciones anteriores"}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: ".4rem", maxHeight: 180, overflowY: "auto" }}>
+                    {historial.filter(c => c.mensajes?.length > 0).slice(0, 10).map((c, i) => (
+                      <button key={i} onClick={() => {
+                        setChatMode(c.modo);
+                        setAllMsgs(prev => ({ ...prev, [c.modo]: c.mensajes }));
+                        setConvIds(prev => ({ ...prev, [c.modo]: c.id }));
+                        setPanelOpen(false);
+                      }}
+                        style={{ background: "transparent", border: "1px solid rgba(184,154,78,.1)", color: C.dim, fontFamily: NUNITO, fontSize: ".75rem", padding: ".6em .8em", cursor: "pointer", textAlign: "left", borderRadius: 2 }}>
+                        <div style={{ fontSize: ".65rem", color: "rgba(184,154,78,.5)", marginBottom: ".2rem" }}>
+                          {new Date(c.updated_at).toLocaleDateString("es-AR", { day: "2-digit", month: "short" })} · {c.modo === "general" ? (lang === "en" ? "General" : "General") : `Desafío ${c.modo.replace("d", "")}`}
+                        </div>
+                        <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {c.mensajes?.[0]?.content?.slice(0, 45)}...
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -615,6 +719,7 @@ For vague questions, ask ONE clarifying question first.`;
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <button onClick={() => setPanelOpen(true)} style={{ color: C.dim, background: "none", border: "1px solid rgba(184,154,78,.2)", cursor: "pointer", fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".35em .8em" }}>☰</button>
           <button onClick={() => go("welcome")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>{lang === "en" ? "Sign out →" : "Salir →"}</button>
         </div>
       </div>
