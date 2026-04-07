@@ -2,6 +2,8 @@ import React, { useState } from "react";
 
 const NUNITO = "'Nunito', sans-serif";
 const GEORGIA = "Georgia, serif";
+const SUPABASE_URL = "https://ebczaoptweskqzuzrmls.supabase.co";
+const SUPABASE_KEY = SUPABASE_KEY;
 
 const SYSTEM_PROMPT = `Sos un consultor especializado en el método SIMPLE de Diseño Humano, con 15 años de experiencia asesorando a empresarios y directivos. Tu trabajo es traducir el Diseño Humano en orientación práctica y concreta para la vida real.
 
@@ -327,8 +329,8 @@ function Register({ go, lang, setDynamicUser }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc",
-          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc",
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`,
           "Prefer": "return=minimal"
         },
         body: JSON.stringify({
@@ -441,8 +443,8 @@ function Login({ go, lang, setDynamicUser }) {
     try {
       const r = await fetch(`https://ebczaoptweskqzuzrmls.supabase.co/rest/v1/usuarios?email=eq.${encodeURIComponent(emailClean)}&select=*`, {
         headers: {
-          "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc",
-          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc"
+          "apikey": SUPABASE_KEY,
+          "Authorization": `Bearer ${SUPABASE_KEY}`
         }
       });
       const users = await r.json();
@@ -454,7 +456,24 @@ function Login({ go, lang, setDynamicUser }) {
         setErr(lang === "en" ? "Wrong password." : "Contraseña incorrecta."); setLoading(false); return;
       }
       setDynamicUser({ ...user.diseno, email: emailClean, rol: user.rol });
-      go("onboarding", emailClean);
+      
+      // Verificar si tiene conversaciones previas para saltar el onboarding
+      try {
+        const convR = await fetch(`https://ebczaoptweskqzuzrmls.supabase.co/rest/v1/conversaciones?usuario_email=eq.${encodeURIComponent(emailClean)}&limit=1`, {
+          headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`
+          }
+        });
+        const convs = await convR.json();
+        if (Array.isArray(convs) && convs.length > 0) {
+          go("chat", emailClean); // Ya usó la app antes → directo al chat
+        } else {
+          go("onboarding", emailClean); // Primera vez → onboarding
+        }
+      } catch {
+        go("onboarding", emailClean);
+      }
     } catch {
       setErr(lang === "en" ? "Connection error. Try again." : "Error de conexión. Intentá de nuevo.");
     }
@@ -486,9 +505,6 @@ function Login({ go, lang, setDynamicUser }) {
     </div>
   );
 }
-
-const SUPABASE_URL = "https://ebczaoptweskqzuzrmls.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc";
 
 async function dbFetch(endpoint, options = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
