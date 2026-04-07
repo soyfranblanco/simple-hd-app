@@ -3,7 +3,7 @@ import React, { useState } from "react";
 const NUNITO = "'Nunito', sans-serif";
 const GEORGIA = "Georgia, serif";
 const SUPABASE_URL = "https://ebczaoptweskqzuzrmls.supabase.co";
-const SUPABASE_KEY = SUPABASE_KEY;
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc";
 
 const SYSTEM_PROMPT = `Sos un consultor especializado en el método SIMPLE de Diseño Humano, con 15 años de experiencia asesorando a empresarios y directivos. Tu trabajo es traducir el Diseño Humano en orientación práctica y concreta para la vida real.
 
