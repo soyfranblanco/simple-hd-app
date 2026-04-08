@@ -551,7 +551,51 @@ function ParagraphStar({ text, onStar }) {
 function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, setProblema, dynamicUser }) {
   const user = dynamicUser || USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
   const [chatMode, setChatMode] = useState("general");
-  const [allMsgs, setAllMsgs] = useState({ general: [], d1: [], d2: [], d3: [] });
+  const [pdfTexto, setPdfTexto] = useState("");
+  const [pdfNombre, setPdfNombre] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const fileInputRef = React.useRef(null);
+
+  async function handlePdf(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPdfLoading(true);
+    setPdfNombre(file.name);
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      // Usar pdf.js via CDN
+      const pdfjsLib = window['pdfjs-dist/build/pdf'];
+      if (!pdfjsLib) {
+        // Cargar pdf.js dinámicamente
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+        window['pdfjs-dist/build/pdf'].GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+      const pdfjs = window['pdfjs-dist/build/pdf'];
+      pdfjs.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+      let texto = "";
+      for (let i = 1; i <= Math.min(pdf.numPages, 20); i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        texto += content.items.map(item => item.str).join(" ") + "\n";
+      }
+      setPdfTexto(texto.trim());
+    } catch {
+      setPdfTexto("");
+      setPdfNombre("");
+      alert("No se pudo leer el PDF. Intentá con otro archivo.");
+    }
+    setPdfLoading(false);
+    e.target.value = "";
+  }
   const [convIds, setConvIds] = useState({ general: null, d1: null, d2: null, d3: null });
   const [historial, setHistorial] = useState([]);
   const [bitacora, setBitacora] = useState("");
@@ -668,7 +712,8 @@ For vague questions, ask ONE clarifying question first.`;
 
   const contextoBase = problema ? `\nPROBLEMA ACTIVO: "${problema.raiz}". Área: ${problema.area}.` : "";
   const contextoDesafio = desafioActual ? `\nESTÁS TRABAJANDO ESPECÍFICAMENTE EL DESAFÍO: "${desafioActual.titulo}" — ${desafioActual.descripcion}. Enfocá todas tus respuestas en ayudar a la persona a avanzar en este desafío concreto.` : "";
-  const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user) + contextoBase + contextoDesafio;
+  const contextoPDF = pdfTexto ? `\n\nDOCUMENTO SUBIDO POR EL USUARIO ("${pdfNombre}"):\n${pdfTexto.slice(0, 8000)}` : "";
+  const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user) + contextoBase + contextoDesafio + contextoPDF;
 
   const lastAssistantRef = React.useRef(null);
   const chatContainerRef = React.useRef(null);
@@ -954,14 +999,31 @@ For vague questions, ask ONE clarifying question first.`;
             </div>
           )}
         </div>
-        <div style={{ padding: "1rem 0 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
-          <textarea style={{ flex: 1, background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: NUNITO, fontSize: ".95rem", padding: ".6rem 0", outline: "none", resize: "none", minHeight: "2rem", lineHeight: 1.5 }}
-            value={input} placeholder={lang === "en" ? "Ask your question..." : "Hacé tu pregunta..."}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} />
-          <button onClick={() => send()} disabled={loading || !input.trim()} style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1em", cursor: "pointer", textTransform: "uppercase", marginBottom: 2, opacity: loading || !input.trim() ? 0.3 : 1 }}>
-            {lang === "en" ? "Send" : "Enviar"}
-          </button>
+        <div style={{ padding: "1rem 0 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", flexDirection: "column", gap: ".5rem" }}>
+          {pdfNombre && (
+            <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
+              <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", color: C.gold, background: "rgba(184,154,78,.08)", border: "1px solid rgba(184,154,78,.2)", padding: ".3em .7em", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                📄 {pdfNombre}
+              </div>
+              <button onClick={() => { setPdfTexto(""); setPdfNombre(""); }}
+                style={{ background: "none", border: "none", color: C.dim, cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>✕</button>
+            </div>
+          )}
+          <div style={{ display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
+            <input ref={fileInputRef} type="file" accept=".pdf" onChange={handlePdf} style={{ display: "none" }} />
+            <button onClick={() => fileInputRef.current?.click()} disabled={pdfLoading}
+              title={lang === "en" ? "Attach PDF" : "Adjuntar PDF"}
+              style={{ background: "none", border: "none", color: pdfNombre ? C.gold : C.dim, cursor: "pointer", fontSize: "1.1rem", padding: 0, marginBottom: 4, opacity: pdfLoading ? 0.5 : 1 }}>
+              {pdfLoading ? "⏳" : "📎"}
+            </button>
+            <textarea style={{ flex: 1, background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: NUNITO, fontSize: ".95rem", padding: ".6rem 0", outline: "none", resize: "none", minHeight: "2rem", lineHeight: 1.5 }}
+              value={input} placeholder={lang === "en" ? "Ask your question..." : "Hacé tu pregunta..."}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} />
+            <button onClick={() => send()} disabled={loading || !input.trim()} style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1em", cursor: "pointer", textTransform: "uppercase", marginBottom: 2, opacity: loading || !input.trim() ? 0.3 : 1 }}>
+              {lang === "en" ? "Send" : "Enviar"}
+            </button>
+          </div>
         </div>
       </div>
       <div style={{ textAlign: "center", padding: ".6rem", fontFamily: "monospace", fontSize: ".5rem", color: "rgba(240,235,224,.15)", letterSpacing: ".15em" }}>
