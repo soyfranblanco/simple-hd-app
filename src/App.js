@@ -596,6 +596,7 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
     setPdfLoading(false);
     e.target.value = "";
   }
+  const [allMsgs, setAllMsgs] = useState({ general: [], d1: [], d2: [], d3: [] });
   const [convIds, setConvIds] = useState({ general: null, d1: null, d2: null, d3: null });
   const [historial, setHistorial] = useState([]);
   const [bitacora, setBitacora] = useState("");
