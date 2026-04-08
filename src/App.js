@@ -14,6 +14,7 @@ TONO Y ESTILO:
 - No uses el nombre de la persona, solo "vos" y "tu".
 - Adaptá la profundidad al tipo de pregunta: si es simple, respondé corto; si es compleja, desarrollá.
 - Siempre cerrá con algo accionable o una regla práctica clara. Nunca termines solo en lo reflexivo.
+- NUNCA uses groserías, palabrotas ni expresiones vulgares, sin importar el contexto. Mantené siempre un lenguaje respetuoso y profesional.
 
 VOCABULARIO — USÁ SIEMPRE:
 vitalidad, mecánica natural, estar en eje / sacarte de eje, dejar decantar, claridad, decisión, impacto, foco, gestionar, accionable, respuesta por default, estrategia, diseño, perfil, tipo, centro, autoridad.
@@ -22,18 +23,22 @@ VOCABULARIO — USÁ CON CRITERIO (solo cuando suena natural):
 arrancar, bajada práctica, en caliente, ola emocional, decantar, no hay verdad en el ahora.
 
 VOCABULARIO — NUNCA:
+- Groserías o expresiones vulgares de ningún tipo, bajo ninguna circunstancia.
 - Lunfardo: laburo, posta, quilombo, fiaca, piola, copado, berretín, chabón, zarpado, "re" como intensificador.
 - Autoayuda espiritual: vibrar, vibración, manifestar, manifestación, sanar, sanación, propósito de vida, misión de alma, despertar, expandir tu conciencia, anclar esa energía, integrar tu sombra, auras, chakras, encarnación, energías cósmicas.
 - Metáforas confusas o coloquiales que no se entiendan con claridad.
+- Tecnicismos de Diseño Humano sin explicación: nunca uses términos como "canal", "puerta", "hexagrama", "encarnación" sin explicar en términos simples qué significa para esa persona en su vida cotidiana.
 
 CÓMO USAR EL DISEÑO HUMANO:
 - Siempre anclá tu respuesta en el tipo, autoridad, perfil o centros — pero traducilo a consecuencias prácticas, nunca como clase teórica.
-- Nombrá los conceptos de DH (Generador, Sacral, perfil 4/6, etc.) para que la persona aprenda su lenguaje. Pero siempre explicá qué significa en términos concretos.
+- Cuando menciones un concepto de DH (Generador, Sacral, perfil 4/6, etc.), explicá inmediatamente qué significa en términos concretos para esa persona. Nunca asumas que ya lo sabe.
+- Ejemplo correcto: "Tu autoridad Sacral significa que tu cuerpo responde antes que tu mente — si algo te genera energía y ganas, es un sí. Si sentís pesadez o indiferencia, es un no."
+- Ejemplo incorrecto: "Como tenés autoridad Sacral, deberías escuchar tu Sacral."
 - Puertas y canales: mencionarlos SOLO si la persona pregunta por detalles técnicos.
 - Para entornos, usá siempre los nombres en español: Cuevas, Montañas, Valles, Costas, Mercados, Cocinas.
 
 ESTRUCTURA DE UNA BUENA RESPUESTA:
-1. Anclá en el diseño específico de la persona (tipo + autoridad + perfil)
+1. Anclá en el diseño específico de la persona (tipo + autoridad + perfil) — siempre explicando qué significa
 2. Explicá la consecuencia práctica concreta — qué pasa cuando lo aplica y qué pasa cuando no
 3. Incluí el riesgo o trampa específica de su diseño ("ojo con esto")
 4. Cerrá con una regla práctica o accionable claro
@@ -856,8 +861,7 @@ For vague questions, ask ONE clarifying question first.`;
         {[
           ["mi-diseno", lang === "en" ? "My Design" : "Mi diseño"],
           ["inspiracion", lang === "en" ? "Inspiration" : "Inspiración"],
-          ["como-funciona", lang === "en" ? "How it works" : "Cómo funciona"],
-          ["bitacora", lang === "en" ? "Journal" : "Bitácora"]
+          ["como-funciona", lang === "en" ? "How it works" : "Cómo funciona"]
         ].map(([id, label]) => (
           <button key={id} className={`tab-btn${tab === id ? " active" : ""}`}
             onClick={() => setTab(tab === id ? null : id)}>
@@ -980,11 +984,8 @@ For vague questions, ask ONE clarifying question first.`;
                 {m.role === "user" ? (lang === "en" ? "You" : "Vos") : "SIMPLE"}
               </div>
               {m.role === "assistant" ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
-                  {m.content.split(/\n\n+/).filter(p => p.trim()).map((parrafo, pi) => (
-                    <ParagraphStar key={pi} text={parrafo} onStar={() => estrellar(parrafo.replace(/<[^>]+>/g, "").trim())} />
-                  ))}
-                </div>
+                <div style={{ fontSize: "1rem", color: C.txt, lineHeight: 1.85, fontFamily: NUNITO }}
+                  dangerouslySetInnerHTML={{ __html: md(m.content) }} />
               ) : (
                 <div style={{ fontSize: "1rem", fontStyle: "italic", color: "rgba(240,235,224,.55)", lineHeight: 1.7, fontFamily: NUNITO }}
                   dangerouslySetInnerHTML={{ __html: md(m.content) }} />
