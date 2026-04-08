@@ -626,6 +626,8 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
     } catch {}
     setSavingBitacora(false);
   }
+
+  function nuevaConversacion() {
     setAllMsgs(prev => ({ ...prev, [chatMode]: [] }));
     setConvIds(prev => ({ ...prev, [chatMode]: null }));
   }
