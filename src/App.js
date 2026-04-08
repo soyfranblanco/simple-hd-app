@@ -526,6 +526,9 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
   const [allMsgs, setAllMsgs] = useState({ general: [], d1: [], d2: [], d3: [] });
   const [convIds, setConvIds] = useState({ general: null, d1: null, d2: null, d3: null });
   const [historial, setHistorial] = useState([]);
+  const [bitacora, setBitacora] = useState("");
+  const [bitacoraId, setBitacoraId] = useState(null);
+  const [savingBitacora, setSavingBitacora] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(null);
@@ -540,7 +543,7 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
     setAllMsgs(prev => ({ ...prev, [chatMode]: typeof newMsgs === "function" ? newMsgs(prev[chatMode]) : newMsgs }));
   }
 
-  // Cargar conversación activa y historial al entrar
+  // Cargar conversación activa, historial y bitácora al entrar
   React.useEffect(() => {
     if (!userEmail) return;
     async function cargarConversaciones() {
@@ -548,7 +551,6 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
         const data = await dbFetch(`conversaciones?usuario_email=eq.${encodeURIComponent(userEmail)}&order=updated_at.desc&limit=20`);
         if (!Array.isArray(data)) return;
         setHistorial(data);
-        // Cargar la más reciente de cada modo
         ["general", "d1", "d2", "d3"].forEach(modo => {
           const conv = data.find(c => c.modo === modo);
           if (conv?.mensajes?.length > 0) {
@@ -558,7 +560,17 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
         });
       } catch {}
     }
+    async function cargarBitacora() {
+      try {
+        const data = await dbFetch(`bitacora?usuario_email=eq.${encodeURIComponent(userEmail)}&limit=1`);
+        if (Array.isArray(data) && data.length > 0) {
+          setBitacora(data[0].contenido || "");
+          setBitacoraId(data[0].id);
+        }
+      } catch {}
+    }
     cargarConversaciones();
+    cargarBitacora();
   }, [userEmail]);
 
   // Guardar conversación en Supabase después de cada respuesta
@@ -587,7 +599,33 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
     } catch {}
   }
 
-  async function nuevaConversacion() {
+  async function estrellar(contenido) {
+    const fecha = new Date().toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" });
+    const nuevo = bitacora
+      ? `${bitacora}\n\n— ${fecha} —\n${contenido}`
+      : `— ${fecha} —\n${contenido}`;
+    setBitacora(nuevo);
+    await guardarBitacora(nuevo);
+  }
+
+  async function guardarBitacora(texto) {
+    setSavingBitacora(true);
+    try {
+      if (bitacoraId) {
+        await dbFetch(`bitacora?id=eq.${bitacoraId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ contenido: texto })
+        });
+      } else {
+        const result = await dbFetch("bitacora", {
+          method: "POST",
+          body: JSON.stringify({ usuario_email: userEmail, contenido: texto, fuente: "chat" })
+        });
+        if (Array.isArray(result) && result[0]?.id) setBitacoraId(result[0].id);
+      }
+    } catch {}
+    setSavingBitacora(false);
+  }
     setAllMsgs(prev => ({ ...prev, [chatMode]: [] }));
     setConvIds(prev => ({ ...prev, [chatMode]: null }));
   }
@@ -745,7 +783,8 @@ For vague questions, ask ONE clarifying question first.`;
         {[
           ["mi-diseno", lang === "en" ? "My Design" : "Mi diseño"],
           ["inspiracion", lang === "en" ? "Inspiration" : "Inspiración"],
-          ["como-funciona", lang === "en" ? "How it works" : "Cómo funciona"]
+          ["como-funciona", lang === "en" ? "How it works" : "Cómo funciona"],
+          ["bitacora", lang === "en" ? "Journal" : "Bitácora"]
         ].map(([id, label]) => (
           <button key={id} className={`tab-btn${tab === id ? " active" : ""}`}
             onClick={() => setTab(tab === id ? null : id)}>
@@ -810,6 +849,24 @@ For vague questions, ask ONE clarifying question first.`;
           </>}
         </div>
       )}
+      {tab === "bitacora" && (
+        <div style={{ padding: "1.2rem 2rem", borderBottom: "1px solid rgba(184,154,78,.1)", background: "rgba(255,255,255,.02)", maxHeight: "50vh", display: "flex", flexDirection: "column", gap: ".8rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase" }}>
+              {lang === "en" ? "Your journal" : "Tu bitácora"}
+            </div>
+            <button onClick={() => guardarBitacora(bitacora)} disabled={savingBitacora}
+              style={{ background: "transparent", border: "1px solid rgba(184,154,78,.3)", color: C.gold, fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".2em", padding: ".3em .8em", cursor: "pointer", textTransform: "uppercase", opacity: savingBitacora ? 0.5 : 1 }}>
+              {savingBitacora ? "..." : (lang === "en" ? "Save" : "Guardar")}
+            </button>
+          </div>
+          <textarea
+            value={bitacora}
+            onChange={e => setBitacora(e.target.value)}
+            style={{ flex: 1, background: "transparent", border: "1px solid rgba(184,154,78,.15)", color: C.txt, fontFamily: NUNITO, fontSize: ".88rem", padding: "1rem", outline: "none", resize: "none", lineHeight: 1.8, minHeight: 200, boxSizing: "border-box" }}
+            placeholder={lang === "en" ? "Your insights will appear here when you ⭐ them from the chat. You can also write freely..." : "Tus insights aparecerán acá cuando los ⭐ desde el chat. También podés escribir libremente..."} />
+        </div>
+      )}
       <div style={{ flex: 1, maxWidth: 760, margin: "0 auto", width: "100%", padding: "0 1.5rem", display: "flex", flexDirection: "column" }}>
         <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", paddingRight: "1rem", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
           {msgs.length === 0 && (
@@ -846,8 +903,17 @@ For vague questions, ask ONE clarifying question first.`;
             <div key={i}
               ref={m.role === "assistant" && i === msgs.length - 1 ? lastAssistantRef : m.role === "user" && i === msgs.length - 1 ? lastUserRef : null}
               style={{ textAlign: m.role === "user" ? "right" : "left" }}>
-              <div style={{ fontFamily: "monospace", fontSize: ".53rem", letterSpacing: ".3em", textTransform: "uppercase", marginBottom: ".3rem", color: m.role === "user" ? "rgba(240,235,224,.3)" : C.gold }}>
+              <div style={{ fontFamily: "monospace", fontSize: ".53rem", letterSpacing: ".3em", textTransform: "uppercase", marginBottom: ".3rem", color: m.role === "user" ? "rgba(240,235,224,.3)" : C.gold, display: "flex", alignItems: "center", gap: ".5rem" }}>
                 {m.role === "user" ? (lang === "en" ? "You" : "Vos") : "SIMPLE"}
+                {m.role === "assistant" && (
+                  <button onClick={() => estrellar(m.content.replace(/<[^>]+>/g, ""))}
+                    title={lang === "en" ? "Save to journal" : "Guardar en bitácora"}
+                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: ".75rem", opacity: 0.4, padding: 0, lineHeight: 1 }}
+                    onMouseEnter={e => e.target.style.opacity = 1}
+                    onMouseLeave={e => e.target.style.opacity = 0.4}>
+                    ⭐
+                  </button>
+                )}
               </div>
               <div style={m.role === "user" ? { fontSize: "1rem", fontStyle: "italic", color: "rgba(240,235,224,.55)", lineHeight: 1.7, fontFamily: NUNITO } : { fontSize: "1rem", color: C.txt, lineHeight: 1.85, fontFamily: NUNITO }}
                 dangerouslySetInnerHTML={{ __html: md(m.content) }} />
