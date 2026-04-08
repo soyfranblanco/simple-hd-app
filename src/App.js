@@ -520,6 +520,34 @@ async function dbFetch(endpoint, options = {}) {
   return res.json().catch(() => ({}));
 }
 
+function ParagraphStar({ text, onStar }) {
+  const [starred, setStarred] = useState(false);
+  const [hovered, setHovered] = useState(false);
+
+  function handleStar() {
+    if (starred) return;
+    setStarred(true);
+    onStar();
+  }
+
+  const starColor = starred ? C.gold : hovered ? "rgba(184,154,78,.6)" : "rgba(184,154,78,.2)";
+
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: ".7rem" }}>
+      <button
+        onClick={handleStar}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        title="Guardar en bitácora"
+        style={{ background: "none", border: "none", cursor: starred ? "default" : "pointer", padding: 0, paddingTop: ".2rem", flexShrink: 0, fontSize: ".9rem", color: starColor, transition: "color .2s", lineHeight: 1 }}>
+        ★
+      </button>
+      <div style={{ fontSize: "1rem", color: C.txt, lineHeight: 1.85, fontFamily: NUNITO }}
+        dangerouslySetInnerHTML={{ __html: md(text) }} />
+    </div>
+  );
+}
+
 function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, setProblema, dynamicUser }) {
   const user = dynamicUser || USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
   const [chatMode, setChatMode] = useState("general");
@@ -533,10 +561,7 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(null);
   const [panelOpen, setPanelOpen] = useState(false);
-  const baseChips = lang === "en" ? CHIPS_EN : CHIPS_ES;
-  const CHIPS = problema?.texto
-    ? [lang === "en" ? `How do I work on: "${problema.texto.slice(0, 40)}${problema.texto.length > 40 ? "..." : ""}"?` : `¿Cómo trabajo esto: "${problema.texto.slice(0, 40)}${problema.texto.length > 40 ? "..." : ""}"?`, ...baseChips]
-    : baseChips;
+  const CHIPS = lang === "en" ? CHIPS_EN : CHIPS_ES;
 
   const msgs = allMsgs[chatMode];
   function setMsgs(newMsgs) {
@@ -905,20 +930,19 @@ For vague questions, ask ONE clarifying question first.`;
             <div key={i}
               ref={m.role === "assistant" && i === msgs.length - 1 ? lastAssistantRef : m.role === "user" && i === msgs.length - 1 ? lastUserRef : null}
               style={{ textAlign: m.role === "user" ? "right" : "left" }}>
-              <div style={{ fontFamily: "monospace", fontSize: ".53rem", letterSpacing: ".3em", textTransform: "uppercase", marginBottom: ".3rem", color: m.role === "user" ? "rgba(240,235,224,.3)" : C.gold, display: "flex", alignItems: "center", gap: ".5rem" }}>
+              <div style={{ fontFamily: "monospace", fontSize: ".53rem", letterSpacing: ".3em", textTransform: "uppercase", marginBottom: ".3rem", color: m.role === "user" ? "rgba(240,235,224,.3)" : C.gold }}>
                 {m.role === "user" ? (lang === "en" ? "You" : "Vos") : "SIMPLE"}
-                {m.role === "assistant" && (
-                  <button onClick={() => estrellar(m.content.replace(/<[^>]+>/g, ""))}
-                    title={lang === "en" ? "Save to journal" : "Guardar en bitácora"}
-                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: ".75rem", opacity: 0.4, padding: 0, lineHeight: 1 }}
-                    onMouseEnter={e => e.target.style.opacity = 1}
-                    onMouseLeave={e => e.target.style.opacity = 0.4}>
-                    ⭐
-                  </button>
-                )}
               </div>
-              <div style={m.role === "user" ? { fontSize: "1rem", fontStyle: "italic", color: "rgba(240,235,224,.55)", lineHeight: 1.7, fontFamily: NUNITO } : { fontSize: "1rem", color: C.txt, lineHeight: 1.85, fontFamily: NUNITO }}
-                dangerouslySetInnerHTML={{ __html: md(m.content) }} />
+              {m.role === "assistant" ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
+                  {m.content.split(/\n\n+/).filter(p => p.trim()).map((parrafo, pi) => (
+                    <ParagraphStar key={pi} text={parrafo} onStar={() => estrellar(parrafo.replace(/<[^>]+>/g, "").trim())} />
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: "1rem", fontStyle: "italic", color: "rgba(240,235,224,.55)", lineHeight: 1.7, fontFamily: NUNITO }}
+                  dangerouslySetInnerHTML={{ __html: md(m.content) }} />
+              )}
             </div>
           ))}
           {loading && (
