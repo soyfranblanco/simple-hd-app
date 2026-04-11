@@ -1313,6 +1313,59 @@ function AdminPanel() {
     } catch {}
   }
 
+  const [seleccionados, setSeleccionados] = useState([]);
+  const [teamMsgs, setTeamMsgs] = useState([]);
+  const [teamInput, setTeamInput] = useState("");
+  const [teamLoading, setTeamLoading] = useState(false);
+  const teamEndRef = React.useRef(null);
+
+  React.useEffect(() => {
+    teamEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [teamMsgs, teamLoading]);
+
+  function toggleSeleccion(u) {
+    setSeleccionados(prev =>
+      prev.find(s => s.email === u.email)
+        ? prev.filter(s => s.email !== u.email)
+        : prev.length < 4 ? [...prev, u] : prev
+    );
+  }
+
+  async function sendTeam() {
+    if (!teamInput.trim() || teamLoading) return;
+    const txt = teamInput.trim();
+    setTeamInput("");
+    const next = [...teamMsgs, { role: "user", content: txt }];
+    setTeamMsgs(next);
+    setTeamLoading(true);
+    const perfiles = seleccionados.map((u, i) =>
+      `PERSONA ${i+1} — ${u.nombre} ${u.apellido}: ${JSON.stringify(u.diseno)}`
+    ).join("\n\n");
+    const sys = `Sos un experto en Diseño Humano especializado en dinámicas de equipo. Analizás cómo interactúan múltiples personas según sus diseños.
+
+EQUIPO A ANALIZAR:
+${perfiles}
+
+INSTRUCCIONES:
+- Analizá las dinámicas, complementariedades y tensiones entre estos diseños
+- Identificá roles naturales, quién lidera mejor en qué contexto, dónde pueden surgir fricciones
+- Usá los mismos principios de tono y vocabulario que usás con individuos: directo, sin jerga espiritual, sin tecnicismos sin explicar
+- Cuando hables de cada persona, referite a ellos por su nombre
+- Cerrá siempre con algo accionable para el equipo`;
+    try {
+      const r = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, system: sys, messages: next })
+      });
+      const d = await r.json();
+      setTeamMsgs([...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }]);
+    } catch {
+      setTeamMsgs([...next, { role: "assistant", content: "Error de conexión." }]);
+    }
+    setTeamLoading(false);
+  }
+
   if (!authed) return <AdminLogin onLogin={() => setAuthed(true)} />;
 
   const s = { background: C.bg, minHeight: "100vh", fontFamily: NUNITO, color: C.txt };
@@ -1329,32 +1382,115 @@ function AdminPanel() {
           <div style={{ ...logo, marginBottom: 0 }}>SIMPLE</div>
           <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold }}>ADMIN</div>
         </div>
-        {view === "chat" && (
-          <button onClick={() => setView("lista")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
+        {(view === "chat" || view === "equipo") && (
+          <button onClick={() => { setView("lista"); setSeleccionados([]); setTeamMsgs([]); }} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
         )}
       </div>
 
       {view === "lista" && (
         <div style={{ maxWidth: 800, margin: "2rem auto", padding: "0 2rem" }}>
-          <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, marginBottom: "1.2rem" }}>
-            {usuarios.length} USUARIO{usuarios.length !== 1 ? "S" : ""}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
+            <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold }}>
+              {usuarios.length} USUARIO{usuarios.length !== 1 ? "S" : ""}
+            </div>
+            {seleccionados.length >= 2 && (
+              <button onClick={() => { setTeamMsgs([]); setView("equipo"); }}
+                style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5em 1.2em", cursor: "pointer", textTransform: "uppercase" }}>
+                Analizar equipo ({seleccionados.length})
+              </button>
+            )}
+            {seleccionados.length === 1 && (
+              <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: C.dim }}>Seleccioná al menos 2 para analizar equipo</div>
+            )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
-            {usuarios.map((u, i) => (
-              <button key={i} onClick={() => seleccionar(u)}
-                style={{ background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.15)", padding: "1.2rem 1.5rem", cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = C.gold}
-                onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(184,154,78,.15)"}>
-                <div>
-                  <div style={{ fontSize: ".95rem", fontWeight: 600, color: C.txt, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
-                  <div style={{ fontSize: ".78rem", color: C.dim }}>{u.email}</div>
+            {usuarios.map((u, i) => {
+              const estaSeleccionado = seleccionados.find(s => s.email === u.email);
+              return (
+                <div key={i} style={{ display: "flex", gap: ".8rem", alignItems: "stretch" }}>
+                  <button onClick={() => toggleSeleccion(u)}
+                    style={{ width: 36, flexShrink: 0, background: estaSeleccionado ? "rgba(184,154,78,.15)" : "transparent", border: `1px solid ${estaSeleccionado ? C.gold : "rgba(184,154,78,.2)"}`, color: estaSeleccionado ? C.gold : C.dim, cursor: "pointer", fontSize: ".9rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {estaSeleccionado ? "✓" : "+"}
+                  </button>
+                  <button onClick={() => seleccionar(u)}
+                    style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.15)", padding: "1.2rem 1.5rem", cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = C.gold}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(184,154,78,.15)"}>
+                    <div>
+                      <div style={{ fontSize: ".95rem", fontWeight: 600, color: C.txt, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
+                      <div style={{ fontSize: ".78rem", color: C.dim }}>{u.email}</div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontFamily: "monospace", fontSize: ".55rem", color: C.gold }}>{u.diseno?.tipo}</div>
+                      <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: C.dim }}>Perfil {u.diseno?.perfil}</div>
+                    </div>
+                  </button>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontFamily: "monospace", fontSize: ".55rem", color: C.gold }}>{u.diseno?.tipo}</div>
-                  <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: C.dim }}>Perfil {u.diseno?.perfil}</div>
-                </div>
-              </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {view === "equipo" && (
+        <div style={{ display: "flex", height: "calc(100vh - 60px)" }}>
+          {/* Panel izquierdo — equipo */}
+          <div style={{ width: 260, borderRight: "1px solid rgba(184,154,78,.15)", padding: "1.5rem", overflowY: "auto", flexShrink: 0 }}>
+            <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: "1rem" }}>
+              Equipo · {seleccionados.length} personas
+            </div>
+            {seleccionados.map((u, i) => (
+              <div key={i} style={{ marginBottom: "1.2rem", paddingBottom: "1.2rem", borderBottom: "1px solid rgba(184,154,78,.1)" }}>
+                <div style={{ fontSize: ".9rem", fontWeight: 600, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
+                <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: C.gold }}>{u.diseno?.tipo} · {u.diseno?.perfil}</div>
+                <div style={{ fontSize: ".75rem", color: C.dim, marginTop: ".2rem" }}>{u.diseno?.autoridad}</div>
+              </div>
             ))}
+            <div style={{ marginTop: "1rem", padding: "1rem", background: "rgba(184,154,78,.05)", border: "1px solid rgba(184,154,78,.15)", fontSize: ".78rem", color: C.dim, lineHeight: 1.6 }}>
+              Sesión temporal — esta conversación no se guarda.
+            </div>
+          </div>
+
+          {/* Chat de equipo */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+              {teamMsgs.length === 0 && (
+                <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem", lineHeight: 1.8 }}>
+                  <div style={{ fontSize: "1.1rem", color: C.txt, marginBottom: ".5rem" }}>
+                    {seleccionados.map(u => u.nombre).join(", ")}
+                  </div>
+                  Preguntá sobre las dinámicas del equipo, roles naturales, complementariedades o tensiones.
+                </div>
+              )}
+              {teamMsgs.map((m, i) => (
+                <div key={i} style={{ textAlign: m.role === "user" ? "right" : "left" }}>
+                  <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: m.role === "user" ? C.dim : C.gold, marginBottom: ".25rem", textTransform: "uppercase" }}>
+                    {m.role === "user" ? "Fran" : "SIMPLE"}
+                  </div>
+                  <div style={{ fontSize: ".9rem", lineHeight: 1.8, color: m.role === "user" ? "rgba(240,235,224,.6)" : C.txt, fontStyle: m.role === "user" ? "italic" : "normal" }}
+                    dangerouslySetInnerHTML={{ __html: md(m.content) }} />
+                </div>
+              ))}
+              {teamLoading && (
+                <div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: C.gold, marginBottom: ".25rem" }}>SIMPLE</div>
+                  <div style={{ display: "flex", gap: 5 }}>
+                    {[0,1,2].map(i => <div key={i} style={{ width: 5, height: 5, background: C.gold, borderRadius: "50%", animation: `p 1.4s ${i*.2}s infinite ease-in-out` }} />)}
+                  </div>
+                </div>
+              )}
+              <div ref={teamEndRef} />
+            </div>
+            <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
+              <textarea value={teamInput} onChange={e => setTeamInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendTeam(); } }}
+                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 4, color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
+                placeholder="Preguntá sobre las dinámicas del equipo..." />
+              <button onClick={sendTeam} disabled={teamLoading || !teamInput.trim()}
+                style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1.2em", cursor: "pointer", textTransform: "uppercase", opacity: teamLoading || !teamInput.trim() ? 0.3 : 1, alignSelf: "flex-end", marginBottom: 2 }}>
+                Enviar
+              </button>
+            </div>
           </div>
         </div>
       )}
