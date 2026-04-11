@@ -1382,11 +1382,11 @@ INSTRUCCIONES:
   const entorno = selected?.diseno?.variables?.entorno;
   const entornoES = entorno ? (ENTORNOS_ES[entorno] || entorno) : null;
 
-  // Semicírculo toggle reutilizable
-  const PanelToggle = () => (
-    <div style={{ position: "absolute", top: "50%", right: -20, transform: "translateY(-50%)", width: 20, height: 40, overflow: "hidden", zIndex: 20, pointerEvents: "none" }}>
+  // Semicírculo toggle — posicionado en el contenedor padre (position:relative)
+  const PanelToggle = ({ panelWidth }) => (
+    <div style={{ position: "absolute", top: "50%", left: panelWidth - 1, transform: "translateY(-50%)", width: 20, height: 40, overflow: "hidden", zIndex: 30, pointerEvents: "none" }}>
       <button onClick={() => setPanelVisible(v => !v)}
-        style={{ position: "absolute", top: 0, left: -20, width: 40, height: 40, borderRadius: "50%", background: AC.panelBg, border: "1px solid rgba(184,154,78,.35)", color: gold, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".65rem", paddingLeft: 20, transition: "background .2s", pointerEvents: "auto", boxSizing: "border-box" }}
+        style={{ position: "absolute", top: 0, left: -20, width: 40, height: 40, borderRadius: "50%", background: AC.panelBg, border: "1px solid rgba(184,154,78,.35)", color: gold, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".65rem", paddingLeft: 22, transition: "background .2s", pointerEvents: "auto", boxSizing: "border-box" }}
         onMouseEnter={e => e.currentTarget.style.background = "rgba(184,154,78,.2)"}
         onMouseLeave={e => e.currentTarget.style.background = AC.panelBg}>
         {panelVisible ? "◀" : "▶"}
@@ -1406,7 +1406,11 @@ INSTRUCCIONES:
           <button onClick={() => setDarkMode(v => !v)}
             style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", lineHeight: 1, padding: 0, opacity: 0.7 }}
             title={darkMode ? "Modo día" : "Modo noche"}>
-            {darkMode ? "☀️" : "🌙"}
+            {darkMode ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={gold} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={gold} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            )}
           </button>
           {(view === "chat" || view === "equipo") && (
             <button onClick={() => { setView("lista"); setSeleccionados([]); setTeamMsgs([]); }} style={{ color: gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
@@ -1460,7 +1464,8 @@ INSTRUCCIONES:
       )}
 
       {view === "equipo" && (
-        <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden" }}>
+        <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden", position: "relative" }}>
+          <PanelToggle panelWidth={panelVisible ? 260 : 0} />
           {/* Panel izquierdo — equipo colapsable */}
           <div style={{ width: panelVisible ? 260 : 0, minWidth: 0, borderRight: panelVisible ? "1px solid rgba(184,154,78,.15)" : "none", overflowY: panelVisible ? "auto" : "hidden", flexShrink: 0, transition: "width .3s ease", position: "relative", background: AC.panelBg }}>
             <div style={{ width: 260, padding: "1.5rem", opacity: panelVisible ? 1 : 0, transition: "opacity .2s ease", pointerEvents: panelVisible ? "auto" : "none" }}>
@@ -1482,7 +1487,6 @@ INSTRUCCIONES:
 
           {/* Chat de equipo */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", background: AC.bg }}>
-            <PanelToggle />
             <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {teamMsgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem", lineHeight: 1.8 }}>
@@ -1494,10 +1498,10 @@ INSTRUCCIONES:
               )}
               {teamMsgs.map((m, i) => (
                 <div key={i} style={{ textAlign: m.role === "user" ? "right" : "left" }}>
-                  <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: m.role === "user" ? C.dim : C.gold, marginBottom: ".25rem", textTransform: "uppercase" }}>
+                  <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: m.role === "user" ? AC.dim : gold, marginBottom: ".25rem", textTransform: "uppercase" }}>
                     {m.role === "user" ? "Fran" : "SIMPLE"}
                   </div>
-                  <div style={{ fontSize: ".9rem", lineHeight: 1.8, color: m.role === "user" ? "rgba(240,235,224,.6)" : C.txt, fontStyle: m.role === "user" ? "italic" : "normal" }}
+                  <div style={{ fontSize: ".9rem", lineHeight: 1.8, color: m.role === "user" ? AC.dim : AC.txt, fontStyle: m.role === "user" ? "italic" : "normal" }}
                     dangerouslySetInnerHTML={{ __html: md(m.content) }} />
                 </div>
               ))}
@@ -1526,7 +1530,8 @@ INSTRUCCIONES:
       )}
 
       {view === "chat" && selected && (
-        <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden" }}>
+        <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden", position: "relative" }}>
+          <PanelToggle panelWidth={panelVisible ? 300 : 0} />
           {/* Panel izquierdo — colapsable con animación */}
           <div style={{ width: panelVisible ? 300 : 0, minWidth: 0, borderRight: panelVisible ? "1px solid rgba(184,154,78,.15)" : "none", overflowY: panelVisible ? "auto" : "hidden", flexShrink: 0, display: "flex", flexDirection: "column", position: "relative", transition: "width .3s ease", background: AC.panelBg }}>
             <div style={{ width: 300, padding: "1.5rem", display: "flex", flexDirection: "column", gap: ".7rem", opacity: panelVisible ? 1 : 0, transition: "opacity .2s ease", pointerEvents: panelVisible ? "auto" : "none", boxSizing: "border-box" }}>
@@ -1560,7 +1565,6 @@ INSTRUCCIONES:
 
           {/* Chat */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative", background: AC.bg }}>
-            <PanelToggle />
             <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {msgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem" }}>
@@ -1570,10 +1574,10 @@ INSTRUCCIONES:
               )}
               {msgs.map((m, i) => (
                 <div key={i} style={{ textAlign: m.role === "user" ? "right" : "left" }}>
-                  <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: m.role === "user" ? C.dim : C.gold, marginBottom: ".25rem", textTransform: "uppercase" }}>
+                  <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: m.role === "user" ? AC.dim : gold, marginBottom: ".25rem", textTransform: "uppercase" }}>
                     {m.role === "user" ? "Fran" : "SIMPLE"}
                   </div>
-                  <div style={{ fontSize: ".9rem", lineHeight: 1.8, color: m.role === "user" ? "rgba(240,235,224,.6)" : C.txt, fontStyle: m.role === "user" ? "italic" : "normal" }}
+                  <div style={{ fontSize: ".9rem", lineHeight: 1.8, color: m.role === "user" ? AC.dim : AC.txt, fontStyle: m.role === "user" ? "italic" : "normal" }}
                     dangerouslySetInnerHTML={{ __html: md(m.content) }} />
                 </div>
               ))}
