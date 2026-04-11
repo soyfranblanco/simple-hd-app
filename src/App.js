@@ -1384,12 +1384,14 @@ INSTRUCCIONES:
 
   // Semicírculo toggle reutilizable
   const PanelToggle = () => (
-    <button onClick={() => setPanelVisible(v => !v)}
-      style={{ position: "absolute", top: "50%", left: -1, transform: "translateY(-50%)", background: AC.panelBg, border: "1px solid rgba(184,154,78,.35)", borderLeft: "none", color: gold, cursor: "pointer", width: 20, height: 56, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".7rem", zIndex: 20, borderRadius: "0 28px 28px 0", transition: "background .2s", paddingLeft: 2 }}
-      onMouseEnter={e => e.currentTarget.style.background = "rgba(184,154,78,.15)"}
-      onMouseLeave={e => e.currentTarget.style.background = AC.panelBg}>
-      {panelVisible ? "◀" : "▶"}
-    </button>
+    <div style={{ position: "absolute", top: "50%", right: -20, transform: "translateY(-50%)", width: 20, height: 40, overflow: "hidden", zIndex: 20, pointerEvents: "none" }}>
+      <button onClick={() => setPanelVisible(v => !v)}
+        style={{ position: "absolute", top: 0, left: -20, width: 40, height: 40, borderRadius: "50%", background: AC.panelBg, border: "1px solid rgba(184,154,78,.35)", color: gold, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".65rem", paddingLeft: 20, transition: "background .2s", pointerEvents: "auto", boxSizing: "border-box" }}
+        onMouseEnter={e => e.currentTarget.style.background = "rgba(184,154,78,.2)"}
+        onMouseLeave={e => e.currentTarget.style.background = AC.panelBg}>
+        {panelVisible ? "◀" : "▶"}
+      </button>
+    </div>
   );
 
   return (
