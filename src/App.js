@@ -1366,25 +1366,50 @@ INSTRUCCIONES:
     setTeamLoading(false);
   }
 
+  const [darkMode, setDarkMode] = useState(true);
+  const bg = darkMode ? "#080808" : "#f5f0e8";
+  const txt = darkMode ? "#f0ebe0" : "#1a1a1a";
+  const gold = "#b89a4e";
+  const dim = darkMode ? "rgba(240,235,224,0.45)" : "rgba(26,26,26,0.5)";
+  const panelBg = darkMode ? "#0f0f0f" : "#ede8df";
+  const AC = { bg, txt, gold, dim, panelBg };
+
   if (!authed) return <AdminLogin onLogin={() => setAuthed(true)} />;
 
-  const s = { background: C.bg, minHeight: "100vh", fontFamily: NUNITO, color: C.txt };
+  const s = { background: AC.bg, minHeight: "100vh", fontFamily: NUNITO, color: AC.txt, transition: "background .3s, color .3s" };
   const header = { padding: "1rem 2rem", borderBottom: "1px solid rgba(184,154,78,.2)", display: "flex", alignItems: "center", justifyContent: "space-between" };
 
   const entorno = selected?.diseno?.variables?.entorno;
   const entornoES = entorno ? (ENTORNOS_ES[entorno] || entorno) : null;
+
+  // Semicírculo toggle reutilizable
+  const PanelToggle = () => (
+    <button onClick={() => setPanelVisible(v => !v)}
+      style={{ position: "absolute", top: "50%", left: -1, transform: "translateY(-50%)", background: AC.panelBg, border: "1px solid rgba(184,154,78,.35)", borderLeft: "none", color: gold, cursor: "pointer", width: 20, height: 56, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".7rem", zIndex: 20, borderRadius: "0 28px 28px 0", transition: "background .2s", paddingLeft: 2 }}
+      onMouseEnter={e => e.currentTarget.style.background = "rgba(184,154,78,.15)"}
+      onMouseLeave={e => e.currentTarget.style.background = AC.panelBg}>
+      {panelVisible ? "◀" : "▶"}
+    </button>
+  );
 
   return (
     <div style={s}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap'); @keyframes p{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}`}</style>
       <div style={header}>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <div style={{ ...logo, marginBottom: 0 }}>SIMPLE</div>
-          <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold }}>ADMIN</div>
+          <div style={{ ...logo, marginBottom: 0, color: gold, borderColor: gold }}>SIMPLE</div>
+          <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: gold }}>ADMIN</div>
         </div>
-        {(view === "chat" || view === "equipo") && (
-          <button onClick={() => { setView("lista"); setSeleccionados([]); setTeamMsgs([]); }} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          <button onClick={() => setDarkMode(v => !v)}
+            style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", lineHeight: 1, padding: 0, opacity: 0.7 }}
+            title={darkMode ? "Modo día" : "Modo noche"}>
+            {darkMode ? "☀️" : "🌙"}
+          </button>
+          {(view === "chat" || view === "equipo") && (
+            <button onClick={() => { setView("lista"); setSeleccionados([]); setTeamMsgs([]); }} style={{ color: gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
+          )}
+        </div>
       </div>
 
       {view === "lista" && (
@@ -1435,33 +1460,27 @@ INSTRUCCIONES:
       {view === "equipo" && (
         <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden" }}>
           {/* Panel izquierdo — equipo colapsable */}
-          <div style={{ width: panelVisible ? 260 : 0, minWidth: 0, borderRight: panelVisible ? "1px solid rgba(184,154,78,.15)" : "none", overflowY: panelVisible ? "auto" : "hidden", flexShrink: 0, transition: "width .3s ease", position: "relative" }}>
+          <div style={{ width: panelVisible ? 260 : 0, minWidth: 0, borderRight: panelVisible ? "1px solid rgba(184,154,78,.15)" : "none", overflowY: panelVisible ? "auto" : "hidden", flexShrink: 0, transition: "width .3s ease", position: "relative", background: AC.panelBg }}>
             <div style={{ width: 260, padding: "1.5rem", opacity: panelVisible ? 1 : 0, transition: "opacity .2s ease", pointerEvents: panelVisible ? "auto" : "none" }}>
-              <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: "1rem" }}>
+              <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: "1rem" }}>
                 Equipo · {seleccionados.length} personas
               </div>
               {seleccionados.map((u, i) => (
                 <div key={i} style={{ marginBottom: "1.2rem", paddingBottom: "1.2rem", borderBottom: "1px solid rgba(184,154,78,.1)" }}>
-                  <div style={{ fontSize: ".9rem", fontWeight: 600, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
-                  <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: C.gold }}>{u.diseno?.tipo} · {u.diseno?.perfil}</div>
-                  <div style={{ fontSize: ".75rem", color: C.dim, marginTop: ".2rem" }}>{u.diseno?.autoridad}</div>
+                  <div style={{ fontSize: ".9rem", fontWeight: 600, marginBottom: ".2rem", color: AC.txt }}>{u.nombre} {u.apellido}</div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: gold }}>{u.diseno?.tipo} · {u.diseno?.perfil}</div>
+                  <div style={{ fontSize: ".75rem", color: AC.dim, marginTop: ".2rem" }}>{u.diseno?.autoridad}</div>
                 </div>
               ))}
-              <div style={{ marginTop: "1rem", padding: "1rem", background: "rgba(184,154,78,.05)", border: "1px solid rgba(184,154,78,.15)", fontSize: ".78rem", color: C.dim, lineHeight: 1.6 }}>
+              <div style={{ marginTop: "1rem", padding: "1rem", background: "rgba(184,154,78,.05)", border: "1px solid rgba(184,154,78,.15)", fontSize: ".78rem", color: AC.dim, lineHeight: 1.6 }}>
                 Sesión temporal — esta conversación no se guarda.
               </div>
             </div>
           </div>
 
           {/* Chat de equipo */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative" }}>
-            {/* Botón semicírculo toggle */}
-            <button onClick={() => setPanelVisible(v => !v)}
-              style={{ position: "absolute", top: "50%", left: -1, transform: "translateY(-50%)", background: "#0f0f0f", border: "1px solid rgba(184,154,78,.3)", borderLeft: "none", color: C.gold, cursor: "pointer", width: 18, height: 48, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".65rem", zIndex: 20, borderRadius: "0 24px 24px 0", transition: "all .2s", paddingRight: 2 }}
-              onMouseEnter={e => e.currentTarget.style.background = "rgba(184,154,78,.1)"}
-              onMouseLeave={e => e.currentTarget.style.background = "#0f0f0f"}>
-              {panelVisible ? "◀" : "▶"}
-            </button>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", background: AC.bg }}>
+            <PanelToggle />
             <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {teamMsgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem", lineHeight: 1.8 }}>
@@ -1507,10 +1526,10 @@ INSTRUCCIONES:
       {view === "chat" && selected && (
         <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden" }}>
           {/* Panel izquierdo — colapsable con animación */}
-          <div style={{ width: panelVisible ? 300 : 0, minWidth: 0, borderRight: panelVisible ? "1px solid rgba(184,154,78,.15)" : "none", overflowY: panelVisible ? "auto" : "hidden", flexShrink: 0, display: "flex", flexDirection: "column", gap: ".7rem", position: "relative", transition: "width .3s ease" }}>
-            <div style={{ width: 300, padding: "1.5rem", display: "flex", flexDirection: "column", gap: ".7rem", opacity: panelVisible ? 1 : 0, transition: "opacity .2s ease", pointerEvents: panelVisible ? "auto" : "none" }}>
-              <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>{selected.nombre} {selected.apellido}</div>
-              <div style={{ fontSize: ".78rem", color: C.dim, marginBottom: ".5rem" }}>{selected.email}</div>
+          <div style={{ width: panelVisible ? 300 : 0, minWidth: 0, borderRight: panelVisible ? "1px solid rgba(184,154,78,.15)" : "none", overflowY: panelVisible ? "auto" : "hidden", flexShrink: 0, display: "flex", flexDirection: "column", position: "relative", transition: "width .3s ease", background: AC.panelBg }}>
+            <div style={{ width: 300, padding: "1.5rem", display: "flex", flexDirection: "column", gap: ".7rem", opacity: panelVisible ? 1 : 0, transition: "opacity .2s ease", pointerEvents: panelVisible ? "auto" : "none", boxSizing: "border-box" }}>
+              <div style={{ fontSize: "1.1rem", fontWeight: 600, color: AC.txt }}>{selected.nombre} {selected.apellido}</div>
+              <div style={{ fontSize: ".78rem", color: AC.dim, marginBottom: ".5rem" }}>{selected.email}</div>
               {[
                 ["Tipo", selected.diseno?.tipo],
                 ["Autoridad", selected.diseno?.autoridad],
@@ -1521,16 +1540,16 @@ INSTRUCCIONES:
                 ["Entorno", entornoES]
               ].map(([l, v]) => v && (
                 <div key={l}>
-                  <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".15rem" }}>{l}</div>
-                  <div style={{ fontSize: ".82rem" }}>{v}</div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".15rem" }}>{l}</div>
+                  <div style={{ fontSize: ".82rem", color: AC.txt }}>{v}</div>
                 </div>
               ))}
               <div style={{ borderTop: "1px solid rgba(184,154,78,.15)", marginTop: ".5rem", paddingTop: "1rem" }}>
-                <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".5rem" }}>Mis notas</div>
+                <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".5rem" }}>Mis notas</div>
                 <textarea value={nota} onChange={e => setNota(e.target.value)}
-                  style={{ width: "100%", background: "rgba(255,255,255,.03)", border: "1px solid rgba(184,154,78,.2)", color: C.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 120, boxSizing: "border-box", marginBottom: ".5rem" }}
-                  placeholder="Anotá contexto sobre este cliente. Al guardar, el chat lo va a tener en cuenta..." />
-                <button onClick={guardarNota} style={{ background: nota === notaGuardada ? "rgba(184,154,78,.1)" : C.gold, color: nota === notaGuardada ? C.dim : C.bg, border: `1px solid ${C.gold}`, fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".5em 1em", cursor: "pointer", textTransform: "uppercase", width: "100%", transition: "all .2s" }}>
+                  style={{ width: "100%", background: darkMode ? "rgba(255,255,255,.03)" : "rgba(0,0,0,.04)", border: "1px solid rgba(184,154,78,.2)", color: AC.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 120, boxSizing: "border-box", marginBottom: ".5rem", display: "block" }}
+                  placeholder="Anotá contexto sobre este cliente..." />
+                <button onClick={guardarNota} style={{ background: nota === notaGuardada ? "rgba(184,154,78,.1)" : gold, color: nota === notaGuardada ? AC.dim : AC.bg, border: `1px solid ${gold}`, fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".5em 1em", cursor: "pointer", textTransform: "uppercase", width: "100%", boxSizing: "border-box", transition: "all .2s", display: "block" }}>
                   {nota === notaGuardada && notaGuardada ? "✓ Nota activa en el chat" : "Activar nota en el chat"}
                 </button>
               </div>
@@ -1538,14 +1557,8 @@ INSTRUCCIONES:
           </div>
 
           {/* Chat */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative" }}>
-            {/* Botón semicírculo toggle */}
-            <button onClick={() => setPanelVisible(v => !v)}
-              style={{ position: "absolute", top: "50%", left: -1, transform: "translateY(-50%)", background: "#0f0f0f", border: "1px solid rgba(184,154,78,.3)", borderLeft: "none", color: C.gold, cursor: "pointer", width: 18, height: 48, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".65rem", zIndex: 20, borderRadius: "0 24px 24px 0", transition: "all .2s", paddingRight: 2 }}
-              onMouseEnter={e => e.currentTarget.style.background = "rgba(184,154,78,.1)"}
-              onMouseLeave={e => e.currentTarget.style.background = "#0f0f0f"}>
-              {panelVisible ? "◀" : "▶"}
-            </button>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative", background: AC.bg }}>
+            <PanelToggle />
             <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {msgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem" }}>
