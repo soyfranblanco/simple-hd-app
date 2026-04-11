@@ -1433,26 +1433,35 @@ INSTRUCCIONES:
       )}
 
       {view === "equipo" && (
-        <div style={{ display: "flex", height: "calc(100vh - 60px)" }}>
-          {/* Panel izquierdo — equipo */}
-          <div style={{ width: 260, borderRight: "1px solid rgba(184,154,78,.15)", padding: "1.5rem", overflowY: "auto", flexShrink: 0 }}>
-            <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: "1rem" }}>
-              Equipo · {seleccionados.length} personas
-            </div>
-            {seleccionados.map((u, i) => (
-              <div key={i} style={{ marginBottom: "1.2rem", paddingBottom: "1.2rem", borderBottom: "1px solid rgba(184,154,78,.1)" }}>
-                <div style={{ fontSize: ".9rem", fontWeight: 600, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
-                <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: C.gold }}>{u.diseno?.tipo} · {u.diseno?.perfil}</div>
-                <div style={{ fontSize: ".75rem", color: C.dim, marginTop: ".2rem" }}>{u.diseno?.autoridad}</div>
+        <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden" }}>
+          {/* Panel izquierdo — equipo colapsable */}
+          <div style={{ width: panelVisible ? 260 : 0, minWidth: 0, borderRight: panelVisible ? "1px solid rgba(184,154,78,.15)" : "none", overflowY: panelVisible ? "auto" : "hidden", flexShrink: 0, transition: "width .3s ease", position: "relative" }}>
+            <div style={{ width: 260, padding: "1.5rem", opacity: panelVisible ? 1 : 0, transition: "opacity .2s ease", pointerEvents: panelVisible ? "auto" : "none" }}>
+              <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: "1rem" }}>
+                Equipo · {seleccionados.length} personas
               </div>
-            ))}
-            <div style={{ marginTop: "1rem", padding: "1rem", background: "rgba(184,154,78,.05)", border: "1px solid rgba(184,154,78,.15)", fontSize: ".78rem", color: C.dim, lineHeight: 1.6 }}>
-              Sesión temporal — esta conversación no se guarda.
+              {seleccionados.map((u, i) => (
+                <div key={i} style={{ marginBottom: "1.2rem", paddingBottom: "1.2rem", borderBottom: "1px solid rgba(184,154,78,.1)" }}>
+                  <div style={{ fontSize: ".9rem", fontWeight: 600, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: C.gold }}>{u.diseno?.tipo} · {u.diseno?.perfil}</div>
+                  <div style={{ fontSize: ".75rem", color: C.dim, marginTop: ".2rem" }}>{u.diseno?.autoridad}</div>
+                </div>
+              ))}
+              <div style={{ marginTop: "1rem", padding: "1rem", background: "rgba(184,154,78,.05)", border: "1px solid rgba(184,154,78,.15)", fontSize: ".78rem", color: C.dim, lineHeight: 1.6 }}>
+                Sesión temporal — esta conversación no se guarda.
+              </div>
             </div>
           </div>
 
           {/* Chat de equipo */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative" }}>
+            {/* Botón semicírculo toggle */}
+            <button onClick={() => setPanelVisible(v => !v)}
+              style={{ position: "absolute", top: "50%", left: -1, transform: "translateY(-50%)", background: "#0f0f0f", border: "1px solid rgba(184,154,78,.3)", borderLeft: "none", color: C.gold, cursor: "pointer", width: 18, height: 48, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".65rem", zIndex: 20, borderRadius: "0 24px 24px 0", transition: "all .2s", paddingRight: 2 }}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(184,154,78,.1)"}
+              onMouseLeave={e => e.currentTarget.style.background = "#0f0f0f"}>
+              {panelVisible ? "◀" : "▶"}
+            </button>
             <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {teamMsgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem", lineHeight: 1.8 }}>
@@ -1496,55 +1505,47 @@ INSTRUCCIONES:
       )}
 
       {view === "chat" && selected && (
-        <div style={{ display: "flex", height: "calc(100vh - 60px)" }}>
-          {/* Panel izquierdo — colapsable */}
-          {panelVisible && (
-            <div style={{ width: 300, borderRight: "1px solid rgba(184,154,78,.15)", padding: "1.5rem", overflowY: "auto", flexShrink: 0, display: "flex", flexDirection: "column", gap: ".7rem", position: "relative" }}>
-              {/* Flecha para ocultar */}
-              <button onClick={() => setPanelVisible(false)}
-                style={{ position: "absolute", top: "50%", right: -14, transform: "translateY(-50%)", background: "#0f0f0f", border: "1px solid rgba(184,154,78,.25)", color: C.gold, cursor: "pointer", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".8rem", zIndex: 10, borderRadius: "50%" }}>
-                ◀
-              </button>
-            <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>{selected.nombre} {selected.apellido}</div>
-            <div style={{ fontSize: ".78rem", color: C.dim, marginBottom: ".5rem" }}>{selected.email}</div>
-            {[
-              ["Tipo", selected.diseno?.tipo],
-              ["Autoridad", selected.diseno?.autoridad],
-              ["Perfil", selected.diseno?.perfil],
-              ["Estrategia", selected.diseno?.estrategia],
-              ["Firma", selected.diseno?.firma],
-              ["No-self", selected.diseno?.no_self_theme],
-              ["Entorno", entornoES]
-            ].map(([l, v]) => v && (
-              <div key={l}>
-                <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".15rem" }}>{l}</div>
-                <div style={{ fontSize: ".82rem" }}>{v}</div>
+        <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden" }}>
+          {/* Panel izquierdo — colapsable con animación */}
+          <div style={{ width: panelVisible ? 300 : 0, minWidth: 0, borderRight: panelVisible ? "1px solid rgba(184,154,78,.15)" : "none", overflowY: panelVisible ? "auto" : "hidden", flexShrink: 0, display: "flex", flexDirection: "column", gap: ".7rem", position: "relative", transition: "width .3s ease" }}>
+            <div style={{ width: 300, padding: "1.5rem", display: "flex", flexDirection: "column", gap: ".7rem", opacity: panelVisible ? 1 : 0, transition: "opacity .2s ease", pointerEvents: panelVisible ? "auto" : "none" }}>
+              <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>{selected.nombre} {selected.apellido}</div>
+              <div style={{ fontSize: ".78rem", color: C.dim, marginBottom: ".5rem" }}>{selected.email}</div>
+              {[
+                ["Tipo", selected.diseno?.tipo],
+                ["Autoridad", selected.diseno?.autoridad],
+                ["Perfil", selected.diseno?.perfil],
+                ["Estrategia", selected.diseno?.estrategia],
+                ["Firma", selected.diseno?.firma],
+                ["No-self", selected.diseno?.no_self_theme],
+                ["Entorno", entornoES]
+              ].map(([l, v]) => v && (
+                <div key={l}>
+                  <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".15rem" }}>{l}</div>
+                  <div style={{ fontSize: ".82rem" }}>{v}</div>
+                </div>
+              ))}
+              <div style={{ borderTop: "1px solid rgba(184,154,78,.15)", marginTop: ".5rem", paddingTop: "1rem" }}>
+                <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".5rem" }}>Mis notas</div>
+                <textarea value={nota} onChange={e => setNota(e.target.value)}
+                  style={{ width: "100%", background: "rgba(255,255,255,.03)", border: "1px solid rgba(184,154,78,.2)", color: C.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 120, boxSizing: "border-box", marginBottom: ".5rem" }}
+                  placeholder="Anotá contexto sobre este cliente. Al guardar, el chat lo va a tener en cuenta..." />
+                <button onClick={guardarNota} style={{ background: nota === notaGuardada ? "rgba(184,154,78,.1)" : C.gold, color: nota === notaGuardada ? C.dim : C.bg, border: `1px solid ${C.gold}`, fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".5em 1em", cursor: "pointer", textTransform: "uppercase", width: "100%", transition: "all .2s" }}>
+                  {nota === notaGuardada && notaGuardada ? "✓ Nota activa en el chat" : "Activar nota en el chat"}
+                </button>
               </div>
-            ))}
-
-            <div style={{ borderTop: "1px solid rgba(184,154,78,.15)", marginTop: ".5rem", paddingTop: "1rem" }}>
-              <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".5rem" }}>
-                Mis notas
-              </div>
-              <textarea value={nota} onChange={e => setNota(e.target.value)}
-                style={{ width: "100%", background: "rgba(255,255,255,.03)", border: "1px solid rgba(184,154,78,.2)", color: C.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 120, boxSizing: "border-box", marginBottom: ".5rem" }}
-                placeholder="Anotá contexto sobre este cliente. Al guardar, el chat lo va a tener en cuenta..." />
-              <button onClick={guardarNota} style={{ background: nota === notaGuardada ? "rgba(184,154,78,.1)" : C.gold, color: nota === notaGuardada ? C.dim : C.bg, border: `1px solid ${C.gold}`, fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".5em 1em", cursor: "pointer", textTransform: "uppercase", width: "100%", transition: "all .2s" }}>
-                {nota === notaGuardada && notaGuardada ? "✓ Nota activa en el chat" : "Activar nota en el chat"}
-              </button>
             </div>
           </div>
-          )}
-
-          {!panelVisible && (
-            <button onClick={() => setPanelVisible(true)}
-              style={{ position: "absolute", top: "50%", left: 0, transform: "translateY(-50%)", background: "#0f0f0f", border: "1px solid rgba(184,154,78,.25)", color: C.gold, cursor: "pointer", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".8rem", zIndex: 10, borderRadius: "50%" }}>
-              ▶
-            </button>
-          )}
 
           {/* Chat */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative" }}>
+            {/* Botón semicírculo toggle */}
+            <button onClick={() => setPanelVisible(v => !v)}
+              style={{ position: "absolute", top: "50%", left: -1, transform: "translateY(-50%)", background: "#0f0f0f", border: "1px solid rgba(184,154,78,.3)", borderLeft: "none", color: C.gold, cursor: "pointer", width: 18, height: 48, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".65rem", zIndex: 20, borderRadius: "0 24px 24px 0", transition: "all .2s", paddingRight: 2 }}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(184,154,78,.1)"}
+              onMouseLeave={e => e.currentTarget.style.background = "#0f0f0f"}>
+              {panelVisible ? "◀" : "▶"}
+            </button>
             <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {msgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem" }}>
