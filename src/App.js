@@ -1187,6 +1187,7 @@ function AdminPanel() {
   const [nota, setNota] = useState("");
   const [notaGuardada, setNotaGuardada] = useState("");
   const [view, setView] = useState("lista");
+  const [panelVisible, setPanelVisible] = useState(true);
   const chatEndRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -1297,6 +1298,12 @@ function AdminPanel() {
           <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold }}>ADMIN</div>
         </div>
         {view === "chat" && (
+          <button onClick={() => setPanelVisible(v => !v)}
+            style={{ color: C.dim, background: "none", border: "1px solid rgba(184,154,78,.2)", cursor: "pointer", fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".3em .7em" }}>
+            {panelVisible ? "◀ Ocultar panel" : "▶ Ver panel"}
+          </button>
+        )}
+        {view === "chat" && (
           <button onClick={() => setView("lista")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
         )}
       </div>
@@ -1328,8 +1335,9 @@ function AdminPanel() {
 
       {view === "chat" && selected && (
         <div style={{ display: "flex", height: "calc(100vh - 60px)" }}>
-          {/* Panel izquierdo */}
-          <div style={{ width: 300, borderRight: "1px solid rgba(184,154,78,.15)", padding: "1.5rem", overflowY: "auto", flexShrink: 0, display: "flex", flexDirection: "column", gap: ".7rem" }}>
+          {/* Panel izquierdo — colapsable */}
+          {panelVisible && (
+            <div style={{ width: 300, borderRight: "1px solid rgba(184,154,78,.15)", padding: "1.5rem", overflowY: "auto", flexShrink: 0, display: "flex", flexDirection: "column", gap: ".7rem" }}>
             <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>{selected.nombre} {selected.apellido}</div>
             <div style={{ fontSize: ".78rem", color: C.dim, marginBottom: ".5rem" }}>{selected.email}</div>
             {[
@@ -1359,6 +1367,7 @@ function AdminPanel() {
               </button>
             </div>
           </div>
+          )}
 
           {/* Chat */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
@@ -1391,7 +1400,7 @@ function AdminPanel() {
             <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
               <textarea value={input} onChange={e => setInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 4, color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 80, maxHeight: 200, boxSizing: "border-box" }}
+                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 4, color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
                 placeholder={`Preguntá sobre el diseño de ${selected.nombre}...`} />
               <button onClick={send} disabled={loading || !input.trim()}
                 style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1.2em", cursor: "pointer", textTransform: "uppercase", opacity: loading || !input.trim() ? 0.3 : 1, alignSelf: "flex-end", marginBottom: 2 }}>
