@@ -1330,12 +1330,6 @@ function AdminPanel() {
           <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold }}>ADMIN</div>
         </div>
         {view === "chat" && (
-          <button onClick={() => setPanelVisible(v => !v)}
-            style={{ color: C.dim, background: "none", border: "1px solid rgba(184,154,78,.2)", cursor: "pointer", fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".3em .7em" }}>
-            {panelVisible ? "◀ Ocultar panel" : "▶ Ver panel"}
-          </button>
-        )}
-        {view === "chat" && (
           <button onClick={() => setView("lista")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
         )}
       </div>
@@ -1369,7 +1363,12 @@ function AdminPanel() {
         <div style={{ display: "flex", height: "calc(100vh - 60px)" }}>
           {/* Panel izquierdo — colapsable */}
           {panelVisible && (
-            <div style={{ width: 300, borderRight: "1px solid rgba(184,154,78,.15)", padding: "1.5rem", overflowY: "auto", flexShrink: 0, display: "flex", flexDirection: "column", gap: ".7rem" }}>
+            <div style={{ width: 300, borderRight: "1px solid rgba(184,154,78,.15)", padding: "1.5rem", overflowY: "auto", flexShrink: 0, display: "flex", flexDirection: "column", gap: ".7rem", position: "relative" }}>
+              {/* Flecha para ocultar */}
+              <button onClick={() => setPanelVisible(false)}
+                style={{ position: "absolute", top: "50%", right: -14, transform: "translateY(-50%)", background: "#0f0f0f", border: "1px solid rgba(184,154,78,.25)", color: C.gold, cursor: "pointer", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".8rem", zIndex: 10, borderRadius: "50%" }}>
+                ◀
+              </button>
             <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>{selected.nombre} {selected.apellido}</div>
             <div style={{ fontSize: ".78rem", color: C.dim, marginBottom: ".5rem" }}>{selected.email}</div>
             {[
@@ -1389,7 +1388,7 @@ function AdminPanel() {
 
             <div style={{ borderTop: "1px solid rgba(184,154,78,.15)", marginTop: ".5rem", paddingTop: "1rem" }}>
               <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".5rem" }}>
-                Mis notas {notaGuardada && <span style={{ color: "rgba(184,154,78,.5)" }}>· activas en el chat</span>}
+                Mis notas
               </div>
               <textarea value={nota} onChange={e => setNota(e.target.value)}
                 style={{ width: "100%", background: "rgba(255,255,255,.03)", border: "1px solid rgba(184,154,78,.2)", color: C.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 120, boxSizing: "border-box", marginBottom: ".5rem" }}
@@ -1401,8 +1400,15 @@ function AdminPanel() {
           </div>
           )}
 
+          {!panelVisible && (
+            <button onClick={() => setPanelVisible(true)}
+              style={{ position: "absolute", top: "50%", left: 0, transform: "translateY(-50%)", background: "#0f0f0f", border: "1px solid rgba(184,154,78,.25)", color: C.gold, cursor: "pointer", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".8rem", zIndex: 10, borderRadius: "50%" }}>
+              ▶
+            </button>
+          )}
+
           {/* Chat */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative" }}>
             <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {msgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem" }}>
