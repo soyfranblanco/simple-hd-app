@@ -1181,11 +1181,13 @@ function AdminPanel() {
   const [usuarios, setUsuarios] = useState([]);
   const [selected, setSelected] = useState(null);
   const [msgs, setMsgs] = useState([]);
+  const [convId, setConvId] = useState(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [nota, setNota] = useState("");
-  const [notas, setNotas] = useState({});
-  const [view, setView] = useState("lista"); // "lista" | "chat"
+  const [notaGuardada, setNotaGuardada] = useState("");
+  const [view, setView] = useState("lista");
+  const chatEndRef = React.useRef(null);
 
   React.useEffect(() => {
     if (!authed) return;
@@ -1199,13 +1201,52 @@ function AdminPanel() {
     cargar();
   }, [authed]);
 
+  // Scroll al final cuando llegan nuevos mensajes
+  React.useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [msgs, loading]);
+
   async function seleccionar(u) {
     setSelected(u);
     setMsgs([]);
+    setConvId(null);
+    setNota("");
+    setNotaGuardada("");
     setView("chat");
-    // Cargar notas guardadas
-    const notaGuardada = notas[u.email] || "";
-    setNota(notaGuardada);
+    // Cargar conversación anterior del admin con este cliente
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/conversaciones?usuario_email=eq.${encodeURIComponent("admin::" + u.email)}&order=updated_at.desc&limit=1`, {
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+      });
+      const data = await r.json();
+      if (Array.isArray(data) && data.length > 0 && data[0].mensajes?.length > 0) {
+        setMsgs(data[0].mensajes);
+        setConvId(data[0].id);
+      }
+    } catch {}
+  }
+
+  async function guardarConvAdmin(mensajes, currentConvId) {
+    try {
+      const emailKey = "admin::" + selected.email;
+      if (currentConvId) {
+        await fetch(`${SUPABASE_URL}/rest/v1/conversaciones?id=eq.${currentConvId}`, {
+          method: "PATCH",
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
+          body: JSON.stringify({ mensajes, updated_at: new Date().toISOString() })
+        });
+        return currentConvId;
+      } else {
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/conversaciones`, {
+          method: "POST",
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" },
+          body: JSON.stringify({ usuario_email: emailKey, modo: "admin", mensajes })
+        });
+        const data = await r.json();
+        if (Array.isArray(data) && data[0]?.id) return data[0].id;
+      }
+    } catch {}
+    return currentConvId;
   }
 
   async function send() {
@@ -1215,7 +1256,9 @@ function AdminPanel() {
     const next = [...msgs, { role: "user", content: txt }];
     setMsgs(next);
     setLoading(true);
-    const sys = SYSTEM_PROMPT + "\nDISEÑO DE LA PERSONA CON QUIEN ESTÁS TRABAJANDO: " + JSON.stringify(selected.diseno) + "\nEres el asistente del consultor Fran Blanco. Estás ayudando a Fran a preparar o analizar el perfil de este cliente.";
+    // Incluir notas en el contexto si las hay
+    const contextoNotas = notaGuardada ? `\n\nNOTAS PRIVADAS DEL CONSULTOR SOBRE ESTE CLIENTE:\n${notaGuardada}` : "";
+    const sys = SYSTEM_PROMPT + "\nDISEÑO DE LA PERSONA CON QUIEN ESTÁS TRABAJANDO: " + JSON.stringify(selected.diseno) + "\nEres el asistente del consultor Fran Blanco. Estás ayudando a Fran a preparar o analizar el perfil de este cliente." + contextoNotas;
     try {
       const r = await fetch("/api/chat", {
         method: "POST",
@@ -1223,7 +1266,10 @@ function AdminPanel() {
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: sys, messages: next })
       });
       const d = await r.json();
-      setMsgs([...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }]);
+      const finalMsgs = [...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }];
+      setMsgs(finalMsgs);
+      const newId = await guardarConvAdmin(finalMsgs, convId);
+      if (newId && !convId) setConvId(newId);
     } catch {
       setMsgs([...next, { role: "assistant", content: "Error de conexión." }]);
     }
@@ -1231,8 +1277,7 @@ function AdminPanel() {
   }
 
   function guardarNota() {
-    setNotas(prev => ({ ...prev, [selected.email]: nota }));
-    alert("Nota guardada.");
+    setNotaGuardada(nota);
   }
 
   if (!authed) return <AdminLogin onLogin={() => setAuthed(true)} />;
@@ -1240,9 +1285,12 @@ function AdminPanel() {
   const s = { background: C.bg, minHeight: "100vh", fontFamily: NUNITO, color: C.txt };
   const header = { padding: "1rem 2rem", borderBottom: "1px solid rgba(184,154,78,.2)", display: "flex", alignItems: "center", justifyContent: "space-between" };
 
+  const entorno = selected?.diseno?.variables?.entorno;
+  const entornoES = entorno ? (ENTORNOS_ES[entorno] || entorno) : null;
+
   return (
     <div style={s}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap');`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap'); @keyframes p{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}`}</style>
       <div style={header}>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
           <div style={{ ...logo, marginBottom: 0 }}>SIMPLE</div>
@@ -1280,33 +1328,45 @@ function AdminPanel() {
 
       {view === "chat" && selected && (
         <div style={{ display: "flex", height: "calc(100vh - 60px)" }}>
-          {/* Panel izquierdo — info del cliente */}
-          <div style={{ width: 280, borderRight: "1px solid rgba(184,154,78,.15)", padding: "1.5rem", overflowY: "auto", flexShrink: 0 }}>
-            <div style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: ".3rem" }}>{selected.nombre} {selected.apellido}</div>
-            <div style={{ fontSize: ".78rem", color: C.dim, marginBottom: "1.2rem" }}>{selected.email}</div>
-            {[["Tipo", selected.diseno?.tipo], ["Autoridad", selected.diseno?.autoridad], ["Perfil", selected.diseno?.perfil], ["Estrategia", selected.diseno?.estrategia], ["Firma", selected.diseno?.firma], ["No-self", selected.diseno?.no_self_theme]].map(([l, v]) => v && (
-              <div key={l} style={{ marginBottom: ".7rem" }}>
+          {/* Panel izquierdo */}
+          <div style={{ width: 300, borderRight: "1px solid rgba(184,154,78,.15)", padding: "1.5rem", overflowY: "auto", flexShrink: 0, display: "flex", flexDirection: "column", gap: ".7rem" }}>
+            <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>{selected.nombre} {selected.apellido}</div>
+            <div style={{ fontSize: ".78rem", color: C.dim, marginBottom: ".5rem" }}>{selected.email}</div>
+            {[
+              ["Tipo", selected.diseno?.tipo],
+              ["Autoridad", selected.diseno?.autoridad],
+              ["Perfil", selected.diseno?.perfil],
+              ["Estrategia", selected.diseno?.estrategia],
+              ["Firma", selected.diseno?.firma],
+              ["No-self", selected.diseno?.no_self_theme],
+              ["Entorno", entornoES]
+            ].map(([l, v]) => v && (
+              <div key={l}>
                 <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".15rem" }}>{l}</div>
                 <div style={{ fontSize: ".82rem" }}>{v}</div>
               </div>
             ))}
-            <div style={{ borderTop: "1px solid rgba(184,154,78,.15)", marginTop: "1.2rem", paddingTop: "1.2rem" }}>
-              <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".5rem" }}>Mis notas</div>
+
+            <div style={{ borderTop: "1px solid rgba(184,154,78,.15)", marginTop: ".5rem", paddingTop: "1rem" }}>
+              <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".5rem" }}>
+                Mis notas {notaGuardada && <span style={{ color: "rgba(184,154,78,.5)" }}>· activas en el chat</span>}
+              </div>
               <textarea value={nota} onChange={e => setNota(e.target.value)}
-                style={{ width: "100%", background: "rgba(255,255,255,.03)", border: "1px solid rgba(184,154,78,.2)", color: C.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 100, boxSizing: "border-box", marginBottom: ".5rem" }}
-                placeholder="Notas privadas sobre este cliente..." />
-              <button onClick={guardarNota} style={{ background: "transparent", border: "1px solid rgba(184,154,78,.3)", color: C.gold, fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".5em 1em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>
-                Guardar nota
+                style={{ width: "100%", background: "rgba(255,255,255,.03)", border: "1px solid rgba(184,154,78,.2)", color: C.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 120, boxSizing: "border-box", marginBottom: ".5rem" }}
+                placeholder="Anotá contexto sobre este cliente. Al guardar, el chat lo va a tener en cuenta..." />
+              <button onClick={guardarNota} style={{ background: nota === notaGuardada ? "rgba(184,154,78,.1)" : C.gold, color: nota === notaGuardada ? C.dim : C.bg, border: `1px solid ${C.gold}`, fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".5em 1em", cursor: "pointer", textTransform: "uppercase", width: "100%", transition: "all .2s" }}>
+                {nota === notaGuardada && notaGuardada ? "✓ Nota activa en el chat" : "Activar nota en el chat"}
               </button>
             </div>
           </div>
 
           {/* Chat */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
             <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {msgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem" }}>
                   Chateá con el diseño de {selected.nombre}. Las respuestas están basadas en su perfil completo.
+                  {notaGuardada && <div style={{ marginTop: ".5rem", fontSize: ".75rem", color: C.gold }}>📝 Tus notas están activas en este chat.</div>}
                 </div>
               )}
               {msgs.map((m, i) => (
@@ -1326,14 +1386,15 @@ function AdminPanel() {
                   </div>
                 </div>
               )}
+              <div ref={chatEndRef} />
             </div>
-            <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem" }}>
+            <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
               <textarea value={input} onChange={e => setInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                style={{ flex: 1, background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".5rem 0", outline: "none", resize: "none", lineHeight: 1.5 }}
-                placeholder={`Preguntá sobre el diseño de ${selected.nombre}...`} rows={1} />
+                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 4, color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 80, maxHeight: 200, boxSizing: "border-box" }}
+                placeholder={`Preguntá sobre el diseño de ${selected.nombre}...`} />
               <button onClick={send} disabled={loading || !input.trim()}
-                style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1em", cursor: "pointer", textTransform: "uppercase", opacity: loading || !input.trim() ? 0.3 : 1 }}>
+                style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1.2em", cursor: "pointer", textTransform: "uppercase", opacity: loading || !input.trim() ? 0.3 : 1, alignSelf: "flex-end", marginBottom: 2 }}>
                 Enviar
               </button>
             </div>
