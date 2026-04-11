@@ -1186,6 +1186,7 @@ function AdminPanel() {
   const [loading, setLoading] = useState(false);
   const [nota, setNota] = useState("");
   const [notaGuardada, setNotaGuardada] = useState("");
+  const [notaId, setNotaId] = useState(null);
   const [view, setView] = useState("lista");
   const [panelVisible, setPanelVisible] = useState(true);
   const chatEndRef = React.useRef(null);
@@ -1213,8 +1214,9 @@ function AdminPanel() {
     setConvId(null);
     setNota("");
     setNotaGuardada("");
+    setNotaId(null);
     setView("chat");
-    // Cargar conversación anterior del admin con este cliente
+    // Cargar conversación anterior
     try {
       const r = await fetch(`${SUPABASE_URL}/rest/v1/conversaciones?usuario_email=eq.${encodeURIComponent("admin::" + u.email)}&order=updated_at.desc&limit=1`, {
         headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
@@ -1223,6 +1225,18 @@ function AdminPanel() {
       if (Array.isArray(data) && data.length > 0 && data[0].mensajes?.length > 0) {
         setMsgs(data[0].mensajes);
         setConvId(data[0].id);
+      }
+    } catch {}
+    // Cargar notas guardadas
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/bitacora?usuario_email=eq.${encodeURIComponent("admin::" + u.email)}&limit=1`, {
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+      });
+      const data = await r.json();
+      if (Array.isArray(data) && data.length > 0) {
+        setNota(data[0].contenido || "");
+        setNotaGuardada(data[0].contenido || "");
+        setNotaId(data[0].id);
       }
     } catch {}
   }
@@ -1277,8 +1291,26 @@ function AdminPanel() {
     setLoading(false);
   }
 
-  function guardarNota() {
+  async function guardarNota() {
     setNotaGuardada(nota);
+    try {
+      const emailKey = "admin::" + selected.email;
+      if (notaId) {
+        await fetch(`${SUPABASE_URL}/rest/v1/bitacora?id=eq.${notaId}`, {
+          method: "PATCH",
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
+          body: JSON.stringify({ contenido: nota })
+        });
+      } else {
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/bitacora`, {
+          method: "POST",
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" },
+          body: JSON.stringify({ usuario_email: emailKey, contenido: nota, fuente: "admin" })
+        });
+        const data = await r.json();
+        if (Array.isArray(data) && data[0]?.id) setNotaId(data[0].id);
+      }
+    } catch {}
   }
 
   if (!authed) return <AdminLogin onLogin={() => setAuthed(true)} />;
