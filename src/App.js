@@ -961,7 +961,7 @@ For vague questions, ask ONE clarifying question first.`;
                     {lang === "en" ? "Hi, " : "Hola, "}<span style={{ color: C.gold, fontStyle: "italic" }}>{user.nombre}</span>
                   </div>
                   <div style={{ fontSize: ".9rem", color: C.dim, marginBottom: "1.5rem", lineHeight: 1.6 }}>
-                    {lang === "en" ? "I'm an AI connected to your design. Every answer is based on your unique way of functioning — not generalities. What I don't know for certain, I don't make up." : "Soy una inteligencia artificial conectada a tu diseño. Cada respuesta está basada en tu forma única de funcionar — no en generalidades. Lo que no sé con certeza, no lo invento."}
+                    {lang === "en" ? "I'm an AI created by Fran and connected to your design. Every answer is based on your unique way of functioning — not generalities. I'm not designed to flatter you. And if I don't know something, I won't make it up." : "Soy una inteligencia artificial creada por Fran y conectada a tu diseño. Cada respuesta está basada en tu forma única de funcionar — no en generalidades. No estoy diseñada para adularte. Y si no sé algo, no te lo voy a inventar."}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", justifyContent: "center" }}>
                     {CHIPS.map(c => (
