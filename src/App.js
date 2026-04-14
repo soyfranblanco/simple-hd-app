@@ -1422,17 +1422,17 @@ INSTRUCCIONES:
       {view === "lista" && (
         <div style={{ maxWidth: 800, margin: "2rem auto", padding: "0 2rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
-            <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: C.gold }}>
+            <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: gold }}>
               {usuarios.length} USUARIO{usuarios.length !== 1 ? "S" : ""}
             </div>
             {seleccionados.length >= 2 && (
               <button onClick={() => { setTeamMsgs([]); setView("equipo"); }}
-                style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5em 1.2em", cursor: "pointer", textTransform: "uppercase" }}>
+                style={{ background: gold, color: AC.bg, border: "none", fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5em 1.2em", cursor: "pointer", textTransform: "uppercase" }}>
                 Analizar equipo ({seleccionados.length})
               </button>
             )}
             {seleccionados.length === 1 && (
-              <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: C.dim }}>Seleccioná al menos 2 para analizar equipo</div>
+              <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: AC.dim }}>Seleccioná al menos 2 para analizar equipo</div>
             )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
@@ -1441,20 +1441,20 @@ INSTRUCCIONES:
               return (
                 <div key={i} style={{ display: "flex", gap: ".8rem", alignItems: "stretch" }}>
                   <button onClick={() => toggleSeleccion(u)}
-                    style={{ width: 36, flexShrink: 0, background: estaSeleccionado ? "rgba(184,154,78,.15)" : "transparent", border: `1px solid ${estaSeleccionado ? C.gold : "rgba(184,154,78,.2)"}`, color: estaSeleccionado ? C.gold : C.dim, cursor: "pointer", fontSize: ".9rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    style={{ width: 36, flexShrink: 0, background: estaSeleccionado ? "rgba(184,154,78,.15)" : "transparent", border: `1px solid ${estaSeleccionado ? gold : "rgba(184,154,78,.2)"}`, color: estaSeleccionado ? gold : AC.dim, cursor: "pointer", fontSize: ".9rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {estaSeleccionado ? "✓" : "+"}
                   </button>
                   <button onClick={() => seleccionar(u)}
-                    style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.15)", padding: "1.2rem 1.5rem", cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = C.gold}
+                    style={{ flex: 1, background: AC.panelBg, border: "1px solid rgba(184,154,78,.15)", padding: "1.2rem 1.5rem", cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = gold}
                     onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(184,154,78,.15)"}>
                     <div>
-                      <div style={{ fontSize: ".95rem", fontWeight: 600, color: C.txt, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
-                      <div style={{ fontSize: ".78rem", color: C.dim }}>{u.email}</div>
+                      <div style={{ fontSize: ".95rem", fontWeight: 600, color: AC.txt, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
+                      <div style={{ fontSize: ".78rem", color: AC.dim }}>{u.email}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontFamily: "monospace", fontSize: ".55rem", color: C.gold }}>{u.diseno?.tipo}</div>
-                      <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: C.dim }}>Perfil {u.diseno?.perfil}</div>
+                      <div style={{ fontFamily: "monospace", fontSize: ".55rem", color: gold }}>{u.diseno?.tipo}</div>
+                      <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: AC.dim }}>Perfil {u.diseno?.perfil}</div>
                     </div>
                   </button>
                 </div>
