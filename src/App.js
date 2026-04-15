@@ -15,7 +15,14 @@ TONO Y ESTILO:
 - Adaptá la profundidad al tipo de pregunta: si es simple, respondé corto; si es compleja, desarrollá.
 - Siempre cerrá con algo accionable o una regla práctica clara. Nunca termines solo en lo reflexivo.
 - NUNCA uses groserías, palabrotas ni expresiones vulgares, sin importar el contexto. Mantené siempre un lenguaje respetuoso y profesional.
-- IDIOMA ESTRICTO: cuando el usuario escribe en español, respondé 100% en español. NUNCA insertes palabras o frases en inglés dentro de una oración en español. Esto incluye términos como "worth", "mindset", "feedback", "insight", "output", "burnout", "trigger" y cualquier anglicismo que tenga equivalente en español. Traducí siempre: worth → valor o mérito, mindset → mentalidad, feedback → devolución, insight → claridad o revelación, output → resultado, burnout → agotamiento, trigger → disparador.
+- IDIOMA ESTRICTO: cuando el usuario escribe en español, respondé 100% en español. NUNCA insertes palabras en inglés dentro de una oración en español, ni siquiera términos técnicos de Diseño Humano. Usá siempre su equivalente en español.
+
+GLOSARIO DE DISEÑO HUMANO — usá SIEMPRE la versión en español:
+Tipos: Manifestor → Manifestador | Generator → Generador | Manifesting Generator → Generador Manifestante | Projector → Proyector | Reflector → Reflector
+Autoridades: Sacral → Sacral (este término se mantiene igual) | Splenic → Esplénica | Emotional → Emocional | Ego → Ego | Self-Projected → desde el Sí Mismo | Mental → Mental | Lunar → Lunar
+Centros: Sacral Center → Centro Sacral | Solar Plexus → Plexo Solar | Spleen → Bazo | Heart/Ego → Corazón | G Center → Centro G | Throat → Garganta | Ajna → Ajna | Head → Cabeza | Root → Raíz
+Otros términos: Not-Self → no-self (se acepta) | signature → firma | profile → perfil | cross → cruz | definition → definición | channels → canales | gates → puertas | conditioning → condicionamiento | deconditioning → desacondicionamiento | aura → aura | strategy → estrategia | authority → autoridad | open center → centro abierto | defined center → centro definido
+Anglicismos generales — traducí siempre: worth → valor o mérito, mindset → mentalidad, feedback → devolución, insight → claridad o revelación, output → resultado, burnout → agotamiento, trigger → disparador, default → respuesta automática, flow → flujo.
 
 VOCABULARIO — USÁ SIEMPRE:
 vitalidad, mecánica natural, estar en eje / sacarte de eje, dejar decantar, claridad, decisión, impacto, foco, gestionar, accionable, respuesta por default, estrategia, diseño, perfil, tipo, centro, autoridad.
@@ -1204,9 +1211,12 @@ function AdminPanel() {
     cargar();
   }, [authed]);
 
-  // Scroll al final cuando llegan nuevos mensajes
+  // Scroll solo cuando el usuario envía — no al cargar historial
+  const shouldScrollRef = React.useRef(false);
   React.useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (shouldScrollRef.current) {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [msgs, loading]);
 
   async function seleccionar(u) {
@@ -1269,6 +1279,7 @@ function AdminPanel() {
     if (!input.trim() || loading || !selected) return;
     const txt = input.trim();
     setInput("");
+    shouldScrollRef.current = true;
     const next = [...msgs, { role: "user", content: txt }];
     setMsgs(next);
     setLoading(true);
@@ -1290,6 +1301,7 @@ function AdminPanel() {
       setMsgs([...next, { role: "assistant", content: "Error de conexión." }]);
     }
     setLoading(false);
+    shouldScrollRef.current = false;
   }
 
   async function guardarNota() {
@@ -1321,7 +1333,9 @@ function AdminPanel() {
   const teamEndRef = React.useRef(null);
 
   React.useEffect(() => {
-    teamEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (shouldScrollRef.current) {
+      teamEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [teamMsgs, teamLoading]);
 
   function toggleSeleccion(u) {
@@ -1336,6 +1350,7 @@ function AdminPanel() {
     if (!teamInput.trim() || teamLoading) return;
     const txt = teamInput.trim();
     setTeamInput("");
+    shouldScrollRef.current = true;
     const next = [...teamMsgs, { role: "user", content: txt }];
     setTeamMsgs(next);
     setTeamLoading(true);
