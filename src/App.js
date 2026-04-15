@@ -376,7 +376,7 @@ function Register({ go, lang, setDynamicUser }) {
       <div style={{ width: "100%", maxWidth: 420 }}>
         <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem" }}>Crear cuenta</div>
         <div style={{ color: C.dim, textAlign: "center", marginBottom: "1.5rem", fontSize: ".9rem", lineHeight: 1.6 }}>Ingresá tus datos para calcular tu diseño.</div>
-        <div style={{ border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)" }}>
+        <div style={{ border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)", borderRadius: 16 }}>
           {err && <div style={{ color: "#c06040", fontFamily: "monospace", fontSize: ".63rem", marginBottom: ".8rem", textAlign: "center" }}>{err}</div>}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
             <div><label style={lbl}>Nombre *</label><input style={inp} placeholder="Tu nombre" value={f.nom} onChange={e => u("nom", e.target.value)} /></div>
@@ -498,7 +498,7 @@ function Login({ go, lang, setDynamicUser }) {
       <div style={{ width: "100%", maxWidth: 420 }}>
         <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem", fontFamily: GEORGIA }}>{lang === "en" ? "Sign in" : "Ingresar"}</div>
         <div style={{ color: C.dim, textAlign: "center", marginBottom: "1.5rem", fontSize: ".9rem" }}>{lang === "en" ? "Welcome back." : "Bienvenido de nuevo."}</div>
-        <div style={{ border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)" }}>
+        <div style={{ border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)", borderRadius: 16 }}>
           {err && <div style={{ color: "#c06040", fontFamily: "monospace", fontSize: ".63rem", marginBottom: ".8rem", textAlign: "center" }}>{err}</div>}
           <label style={lbl}>Email</label>
           <input style={inp} type="email" placeholder="tu@email.com" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
@@ -833,7 +833,7 @@ For vague questions, ask ONE clarifying question first.`;
                         setConvIds(prev => ({ ...prev, [c.modo]: c.id }));
                         setPanelOpen(false);
                       }}
-                        style={{ background: "transparent", border: "1px solid rgba(184,154,78,.1)", color: C.dim, fontFamily: NUNITO, fontSize: ".75rem", padding: ".6em .8em", cursor: "pointer", textAlign: "left", borderRadius: 2 }}>
+                        style={{ background: "transparent", border: "1px solid rgba(184,154,78,.1)", color: C.dim, fontFamily: NUNITO, fontSize: ".75rem", padding: ".6em .8em", cursor: "pointer", textAlign: "left", borderRadius: 20 }}>
                         <div style={{ fontSize: ".65rem", color: "rgba(184,154,78,.5)", marginBottom: ".2rem" }}>
                           {new Date(c.updated_at).toLocaleDateString("es-AR", { day: "2-digit", month: "short" })} · {c.modo === "general" ? (lang === "en" ? "General" : "General") : `Desafío ${c.modo.replace("d", "")}`}
                         </div>
@@ -912,7 +912,7 @@ For vague questions, ask ONE clarifying question first.`;
           <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem" }}>
             {CHIPS.map(c => (
               <button key={c} onClick={() => { send(c); setTab(null); }}
-                style={{ fontFamily: NUNITO, fontSize: ".8rem", padding: ".4em .9em", border: "1px solid rgba(184,154,78,.25)", color: C.dim, cursor: "pointer", background: "transparent", borderRadius: 2 }}
+                style={{ fontFamily: NUNITO, fontSize: ".8rem", padding: ".4em .9em", border: "1px solid rgba(184,154,78,.25)", color: C.dim, cursor: "pointer", background: "transparent", borderRadius: 20 }}
                 onMouseEnter={e => { e.target.style.borderColor = C.gold; e.target.style.color = "#d4b96a"; }}
                 onMouseLeave={e => { e.target.style.borderColor = "rgba(184,154,78,.25)"; e.target.style.color = C.dim; }}>
                 {c}
@@ -952,7 +952,7 @@ For vague questions, ask ONE clarifying question first.`;
             placeholder={lang === "en" ? "Your insights will appear here when you ⭐ them from the chat. You can also write freely..." : "Tus insights aparecerán acá cuando los ⭐ desde el chat. También podés escribir libremente..."} />
         </div>
       )}
-      <div style={{ flex: 1, maxWidth: 760, margin: "0 auto", width: "100%", padding: "0 1.5rem", display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, maxWidth: 700, margin: "0 auto", width: "100%", padding: "0 2.5rem", display: "flex", flexDirection: "column" }}>
         <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", paddingRight: "1rem", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
           {msgs.length === 0 && (
             <div style={{ textAlign: "center", padding: "1.8rem 1rem", border: "1px solid rgba(184,154,78,.15)" }}>
@@ -1095,7 +1095,7 @@ Respondé SOLO con un JSON válido sin markdown:
     go("chat");
   }
 
-  const cardStyle = { width: "100%", maxWidth: 520, border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)" };
+  const cardStyle = { width: "100%", maxWidth: 520, border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)", borderRadius: 16 };
   const btnPrimary = { background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%", marginTop: "1.2rem" };
   const btnSecondary = { background: "transparent", color: C.dim, border: "1px solid rgba(184,154,78,.3)", fontFamily: "monospace", fontSize: ".63rem", letterSpacing: ".25em", padding: ".7em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%", marginTop: ".6rem" };
 
@@ -1119,7 +1119,7 @@ Respondé SOLO con un JSON válido sin markdown:
         <div style={{ display: "flex", flexWrap: "wrap", gap: ".5rem", marginBottom: "1.5rem" }}>
           {AREAS.map(a => (
             <button key={a.id} onClick={() => setArea(area === (es ? a.label : a.en) ? null : (es ? a.label : a.en))}
-              style={{ background: area === (es ? a.label : a.en) ? "rgba(184,154,78,.15)" : "transparent", border: `1px solid ${area === (es ? a.label : a.en) ? C.gold : "rgba(184,154,78,.25)"}`, color: area === (es ? a.label : a.en) ? C.gold : C.dim, fontFamily: NUNITO, fontSize: ".78rem", padding: ".4em .8em", cursor: "pointer", borderRadius: 2 }}>
+              style={{ background: area === (es ? a.label : a.en) ? "rgba(184,154,78,.15)" : "transparent", border: `1px solid ${area === (es ? a.label : a.en) ? C.gold : "rgba(184,154,78,.25)"}`, color: area === (es ? a.label : a.en) ? C.gold : C.dim, fontFamily: NUNITO, fontSize: ".78rem", padding: ".4em .8em", cursor: "pointer", borderRadius: 20 }}>
               {a.icon} {es ? a.label : a.en}
             </button>
           ))}
@@ -1168,7 +1168,7 @@ function AdminLogin({ onLogin }) {
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: NUNITO, color: C.txt }}>
-      <div style={{ width: "100%", maxWidth: 380, border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)" }}>
+      <div style={{ width: "100%", maxWidth: 380, border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)", borderRadius: 16 }}>
         <div style={{ ...logo, marginBottom: "1.5rem" }}>SIMPLE</div>
         <div style={{ fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".3em", color: C.gold, marginBottom: "1.5rem" }}>ADMIN ACCESS</div>
         {err && <div style={{ color: "#c06040", fontFamily: "monospace", fontSize: ".63rem", marginBottom: ".8rem" }}>{err}</div>}
@@ -1442,7 +1442,7 @@ INSTRUCCIONES:
             </div>
             {seleccionados.length >= 2 && (
               <button onClick={() => { setTeamMsgs([]); setView("equipo"); }}
-                style={{ background: gold, color: AC.bg, border: "none", fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5em 1.2em", cursor: "pointer", textTransform: "uppercase" }}>
+                style={{ background: gold, color: AC.bg, border: "none", borderRadius: 20, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5em 1.2em", cursor: "pointer", textTransform: "uppercase" }}>
                 Analizar equipo ({seleccionados.length})
               </button>
             )}
@@ -1456,11 +1456,11 @@ INSTRUCCIONES:
               return (
                 <div key={i} style={{ display: "flex", gap: ".8rem", alignItems: "stretch" }}>
                   <button onClick={() => toggleSeleccion(u)}
-                    style={{ width: 36, flexShrink: 0, background: estaSeleccionado ? "rgba(184,154,78,.15)" : "transparent", border: `1px solid ${estaSeleccionado ? gold : "rgba(184,154,78,.2)"}`, color: estaSeleccionado ? gold : AC.dim, cursor: "pointer", fontSize: ".9rem", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    style={{ width: 36, flexShrink: 0, background: estaSeleccionado ? "rgba(184,154,78,.15)" : "transparent", border: `1px solid ${estaSeleccionado ? gold : "rgba(184,154,78,.2)"}`, color: estaSeleccionado ? gold : AC.dim, cursor: "pointer", fontSize: ".9rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
                     {estaSeleccionado ? "✓" : "+"}
                   </button>
                   <button onClick={() => seleccionar(u)}
-                    style={{ flex: 1, background: AC.panelBg, border: "1px solid rgba(184,154,78,.15)", padding: "1.2rem 1.5rem", cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                    style={{ flex: 1, background: AC.panelBg, border: "1px solid rgba(184,154,78,.15)", padding: "1.2rem 1.5rem", cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", borderRadius: 12 }}
                     onMouseEnter={e => e.currentTarget.style.borderColor = gold}
                     onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(184,154,78,.15)"}>
                     <div>
@@ -1503,7 +1503,7 @@ INSTRUCCIONES:
 
           {/* Chat de equipo */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", background: AC.bg }}>
-            <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div style={{ flex: 1, padding: "1.5rem 3rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {teamMsgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem", lineHeight: 1.8 }}>
                   <div style={{ fontSize: "1.1rem", color: C.txt, marginBottom: ".5rem" }}>
@@ -1534,10 +1534,10 @@ INSTRUCCIONES:
             <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
               <textarea value={teamInput} onChange={e => setTeamInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendTeam(); } }}
-                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 4, color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
+                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
                 placeholder="Preguntá sobre las dinámicas del equipo..." />
               <button onClick={sendTeam} disabled={teamLoading || !teamInput.trim()}
-                style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1.2em", cursor: "pointer", textTransform: "uppercase", opacity: teamLoading || !teamInput.trim() ? 0.3 : 1, alignSelf: "flex-end", marginBottom: 2 }}>
+                style={{ background: "transparent", border: "1px solid " + C.gold, borderRadius: 20, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1.2em", cursor: "pointer", textTransform: "uppercase", opacity: teamLoading || !teamInput.trim() ? 0.3 : 1, alignSelf: "flex-end", marginBottom: 2 }}>
                 Enviar
               </button>
             </div>
@@ -1570,9 +1570,9 @@ INSTRUCCIONES:
               <div style={{ borderTop: "1px solid rgba(184,154,78,.15)", marginTop: ".5rem", paddingTop: "1rem" }}>
                 <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".5rem" }}>Mis notas</div>
                 <textarea value={nota} onChange={e => setNota(e.target.value)}
-                  style={{ width: "100%", background: darkMode ? "rgba(255,255,255,.03)" : "rgba(0,0,0,.04)", border: "1px solid rgba(184,154,78,.2)", color: AC.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 120, boxSizing: "border-box", marginBottom: ".5rem", display: "block" }}
+                  style={{ width: "100%", background: darkMode ? "rgba(255,255,255,.03)" : "rgba(0,0,0,.04)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: AC.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 120, boxSizing: "border-box", marginBottom: ".5rem", display: "block" }}
                   placeholder="Anotá contexto sobre este cliente..." />
-                <button onClick={guardarNota} style={{ background: nota === notaGuardada ? "rgba(184,154,78,.1)" : gold, color: nota === notaGuardada ? AC.dim : AC.bg, border: `1px solid ${gold}`, fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".5em 1em", cursor: "pointer", textTransform: "uppercase", width: "100%", boxSizing: "border-box", transition: "all .2s", display: "block" }}>
+                <button onClick={guardarNota} style={{ background: nota === notaGuardada ? "rgba(184,154,78,.1)" : gold, color: nota === notaGuardada ? AC.dim : AC.bg, border: `1px solid ${gold}`, borderRadius: 20, fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".5em 1em", cursor: "pointer", textTransform: "uppercase", width: "100%", boxSizing: "border-box", transition: "all .2s", display: "block" }}>
                   {nota === notaGuardada && notaGuardada ? "✓ Nota activa en el chat" : "Activar nota en el chat"}
                 </button>
               </div>
@@ -1581,7 +1581,7 @@ INSTRUCCIONES:
 
           {/* Chat */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative", background: AC.bg }}>
-            <div style={{ flex: 1, padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div style={{ flex: 1, padding: "1.5rem 3rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {msgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem" }}>
                   Chateá con el diseño de {selected.nombre}. Las respuestas están basadas en su perfil completo.
@@ -1610,10 +1610,10 @@ INSTRUCCIONES:
             <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
               <textarea value={input} onChange={e => setInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 4, color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
+                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
                 placeholder={`Preguntá sobre el diseño de ${selected.nombre}...`} />
               <button onClick={send} disabled={loading || !input.trim()}
-                style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1.2em", cursor: "pointer", textTransform: "uppercase", opacity: loading || !input.trim() ? 0.3 : 1, alignSelf: "flex-end", marginBottom: 2 }}>
+                style={{ background: "transparent", border: "1px solid " + C.gold, borderRadius: 20, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1.2em", cursor: "pointer", textTransform: "uppercase", opacity: loading || !input.trim() ? 0.3 : 1, alignSelf: "flex-end", marginBottom: 2 }}>
                 Enviar
               </button>
             </div>
