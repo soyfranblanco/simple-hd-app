@@ -215,10 +215,10 @@ const C = { bg: "#080808", gold: "#b89a4e", txt: "#f0ebe0", dim: "rgba(240,235,2
 
 function md(t) {
   return t
-    .replace(/^### (.+)$/gm, '<span style="color:#b89a4e;font-weight:600">$1</span>')
-    .replace(/^## (.+)$/gm, '<span style="color:#b89a4e;font-weight:600">$1</span>')
-    .replace(/^# (.+)$/gm, '<span style="color:#b89a4e;font-weight:600">$1</span>')
-    .replace(/\*\*(.*?)\*\*/g, '<span style="color:#b89a4e;font-weight:600">$1</span>')
+    .replace(/^### (.+)$/gm, '<span style="color:#b89a4e">$1</span>')
+    .replace(/^## (.+)$/gm, '<span style="color:#b89a4e">$1</span>')
+    .replace(/^# (.+)$/gm, '<span style="color:#b89a4e">$1</span>')
+    .replace(/\*\*(.*?)\*\*/g, '<span style="color:#b89a4e">$1</span>')
     .replace(/\n/g, "<br/>");
 }
 
@@ -568,6 +568,10 @@ function ParagraphStar({ text, onStar }) {
 
 function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, setProblema, dynamicUser }) {
   const user = dynamicUser || USERS[userEmail] || USERS["soyfranblanco@gmail.com"];
+  const [darkModeUser, setDarkModeUser] = useState(true);
+  const C = darkModeUser
+    ? { bg: "#080808", gold: "#b89a4e", txt: "#f0ebe0", dim: "rgba(240,235,224,0.45)" }
+    : { bg: "#f5f0e8", gold: "#b89a4e", txt: "#1a1a1a", dim: "rgba(26,26,26,0.5)" };
   const [chatMode, setChatMode] = useState("general");
   const [pdfTexto, setPdfTexto] = useState("");
   const [pdfNombre, setPdfNombre] = useState("");
@@ -864,7 +868,15 @@ For vague questions, ask ONE clarifying question first.`;
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <button onClick={() => setPanelOpen(true)} style={{ color: C.dim, background: "none", border: "1px solid rgba(184,154,78,.2)", cursor: "pointer", fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".35em .8em" }}>☰</button>
+          <button onClick={() => setDarkModeUser(v => !v)}
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, opacity: 0.8, display: "flex", alignItems: "center" }}
+            title={darkModeUser ? "Modo día" : "Modo noche"}>
+            {darkModeUser ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.gold} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            )}
+          </button>
           <button onClick={() => go("welcome")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>{lang === "en" ? "Sign out →" : "Salir →"}</button>
         </div>
       </div>
@@ -927,13 +939,14 @@ For vague questions, ask ONE clarifying question first.`;
         </div>
       )}
       {tab === "como-funciona" && (
-        <div className="tab-panel" style={{ maxWidth: 640 }}>
+        <div className="tab-panel" style={{ maxWidth: 640, position: "relative" }}>
+          <button onClick={() => setTab(null)} style={{ position: "absolute", top: 0, right: 0, background: "none", border: "none", color: C.dim, cursor: "pointer", fontSize: "1.1rem", lineHeight: 1, padding: "0 .2rem" }}>×</button>
           {lang === "en" ? <>
-            <p style={{ marginTop: 0 }}><strong style={{ color: C.gold }}>SIMPLE</strong> is your personal Human Design consultant. Ask anything about how you make decisions, relate to others, manage your energy, or move forward in your work.</p>
+            <p style={{ marginTop: 0 }}><span style={{ color: C.gold }}>SIMPLE</span> is your personal Human Design consultant. Ask anything about how you make decisions, relate to others, manage your energy, or move forward in your work.</p>
             <p>No generic answers. Everything is based on your specific design — your type, authority, profile and centers.</p>
             <p style={{ marginBottom: 0 }}>The more context you give about your specific situation, the better the answer. You don't need to know anything about Human Design to use it.</p>
           </> : <>
-            <p style={{ marginTop: 0 }}><strong style={{ color: C.gold }}>SIMPLE</strong> es tu consultor personal de Diseño Humano. Podés hacerle cualquier pregunta sobre cómo tomás decisiones, cómo te relacionás, cómo gestionás tu energía o cómo avanzar en tu trabajo.</p>
+            <p style={{ marginTop: 0 }}><span style={{ color: C.gold }}>SIMPLE</span> es tu consultor personal de Diseño Humano. Podés hacerle cualquier pregunta sobre cómo tomás decisiones, cómo te relacionás, cómo gestionás tu energía o cómo avanzar en tu trabajo.</p>
             <p>No da respuestas genéricas. Todo lo que te diga está basado en tu diseño específico — tu tipo, autoridad, perfil y centros.</p>
             <p style={{ marginBottom: 0 }}>Cuanto más contexto le des sobre tu situación concreta, mejor va a ser la respuesta. No hace falta que sepas nada de Diseño Humano para usarlo.</p>
           </>}
@@ -957,7 +970,7 @@ For vague questions, ask ONE clarifying question first.`;
             placeholder={lang === "en" ? "Your insights will appear here when you ⭐ them from the chat. You can also write freely..." : "Tus insights aparecerán acá cuando los ⭐ desde el chat. También podés escribir libremente..."} />
         </div>
       )}
-      <div style={{ flex: 1, maxWidth: 720, margin: "0 auto", width: "100%", padding: "0 4rem", display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, maxWidth: 900, margin: "0 auto", width: "100%", padding: "0 clamp(60px, 20vw, 300px)", display: "flex", flexDirection: "column" }}>
         <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", paddingRight: "1rem", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
           {msgs.length === 0 && (
             <div style={{ textAlign: "center", padding: "1.8rem 1rem", border: "1px solid rgba(184,154,78,.15)" }}>
@@ -1035,7 +1048,7 @@ For vague questions, ask ONE clarifying question first.`;
               value={input} placeholder={lang === "en" ? "Ask your question..." : "Hacé tu pregunta..."}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} />
-            <button onClick={() => send()} disabled={loading || !input.trim()} style={{ background: "transparent", border: "1px solid " + C.gold, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1em", cursor: "pointer", textTransform: "uppercase", marginBottom: 2, opacity: loading || !input.trim() ? 0.3 : 1 }}>
+            <button onClick={() => send()} disabled={loading || !input.trim()} style={{ background: "transparent", border: "1px solid " + C.gold, borderRadius: 20, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1em", cursor: "pointer", textTransform: "uppercase", marginBottom: 2, opacity: loading || !input.trim() ? 0.3 : 1 }}>
               {lang === "en" ? "Send" : "Enviar"}
             </button>
           </div>
@@ -1157,6 +1170,87 @@ Respondé SOLO con un JSON válido sin markdown:
 
 const ADMIN_EMAIL = "soyfranblanco@gmail.com";
 const ADMIN_PASS = "soyadmin";
+
+function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSeleccion, seleccionar, setView, setTeamMsgs }) {
+  const [busqueda, setBusqueda] = React.useState("");
+  const filtrados = busqueda.trim()
+    ? usuarios.filter(u => {
+        const q = busqueda.toLowerCase();
+        return (
+          (u.nombre + " " + u.apellido).toLowerCase().includes(q) ||
+          u.email.toLowerCase().includes(q) ||
+          (u.diseno?.tipo || "").toLowerCase().includes(q)
+        );
+      })
+    : usuarios;
+
+  return (
+    <div style={{ maxWidth: 800, margin: "2rem auto", padding: "0 2rem" }}>
+      {/* Barra de búsqueda */}
+      <div style={{ position: "relative", marginBottom: "1.2rem" }}>
+        <svg style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", opacity: 0.4 }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={gold} strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+          placeholder="Buscar por nombre, email o tipo..."
+          style={{ width: "100%", background: AC.panelBg, border: "1px solid rgba(184,154,78,.2)", borderRadius: 24, color: AC.txt, fontFamily: "'Nunito', sans-serif", fontSize: ".85rem", padding: ".65rem 1rem .65rem 2.5rem", outline: "none", boxSizing: "border-box" }}
+        />
+        {busqueda && (
+          <button onClick={() => setBusqueda("")} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: AC.dim, cursor: "pointer", fontSize: "1rem", lineHeight: 1 }}>×</button>
+        )}
+      </div>
+
+      {/* Header contador + botón equipo */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: ".8rem" }}>
+        <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: gold }}>
+          {filtrados.length} USUARIO{filtrados.length !== 1 ? "S" : ""}{busqueda ? ` · "${busqueda}"` : ""}
+        </div>
+        {seleccionados.length >= 2 && (
+          <button onClick={() => { setTeamMsgs([]); setView("equipo"); }}
+            style={{ background: gold, color: AC.bg, border: "none", borderRadius: 20, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5em 1.2em", cursor: "pointer", textTransform: "uppercase" }}>
+            Analizar equipo ({seleccionados.length})
+          </button>
+        )}
+        {seleccionados.length === 1 && (
+          <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: AC.dim }}>Seleccioná al menos 2 para analizar equipo</div>
+        )}
+      </div>
+
+      {/* Lista */}
+      <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
+        {filtrados.map((u, i) => {
+          const estaSeleccionado = seleccionados.find(s => s.email === u.email);
+          return (
+            <div key={i} style={{ display: "flex", gap: ".8rem", alignItems: "stretch" }}>
+              <button onClick={() => toggleSeleccion(u)}
+                style={{ width: 36, flexShrink: 0, background: estaSeleccionado ? "rgba(184,154,78,.15)" : "transparent", border: `1px solid ${estaSeleccionado ? gold : "rgba(184,154,78,.2)"}`, color: estaSeleccionado ? gold : AC.dim, cursor: "pointer", fontSize: ".9rem", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 10 }}>
+                {estaSeleccionado ? "✓" : "+"}
+              </button>
+              <button onClick={() => seleccionar(u)}
+                style={{ flex: 1, background: AC.panelBg, border: "1px solid rgba(184,154,78,.15)", padding: "1.2rem 1.5rem", cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", borderRadius: 12 }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = gold}
+                onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(184,154,78,.15)"}>
+                <div>
+                  <div style={{ fontSize: ".95rem", fontWeight: 600, color: AC.txt, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
+                  <div style={{ fontSize: ".78rem", color: AC.dim }}>{u.email}</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontFamily: "monospace", fontSize: ".55rem", color: gold }}>{u.diseno?.tipo}</div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: AC.dim }}>Perfil {u.diseno?.perfil}</div>
+                </div>
+              </button>
+            </div>
+          );
+        })}
+        {filtrados.length === 0 && (
+          <div style={{ textAlign: "center", color: AC.dim, fontFamily: "monospace", fontSize: ".6rem", padding: "2rem", letterSpacing: ".2em" }}>
+            SIN RESULTADOS
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -1440,6 +1534,9 @@ INSTRUCCIONES:
       </div>
 
       {view === "lista" && (
+        <AdminListaConBusqueda usuarios={usuarios} gold={gold} AC={AC} seleccionados={seleccionados} toggleSeleccion={toggleSeleccion} seleccionar={seleccionar} setView={setView} setTeamMsgs={setTeamMsgs} />
+      )}
+      {view === "__REMOVED__" && (
         <div style={{ maxWidth: 800, margin: "2rem auto", padding: "0 2rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
             <div style={{ fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".3em", color: gold }}>
@@ -1508,7 +1605,7 @@ INSTRUCCIONES:
 
           {/* Chat de equipo */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", background: AC.bg }}>
-            <div style={{ flex: 1, padding: "1.5rem 4rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div style={{ flex: 1, padding: "1.5rem clamp(60px, 12vw, 170px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {teamMsgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem", lineHeight: 1.8 }}>
                   <div style={{ fontSize: "1.1rem", color: C.txt, marginBottom: ".5rem" }}>
@@ -1536,10 +1633,10 @@ INSTRUCCIONES:
               )}
               <div ref={teamEndRef} />
             </div>
-            <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
+            <div style={{ padding: "1rem clamp(60px, 12vw, 170px)", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
               <textarea value={teamInput} onChange={e => setTeamInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendTeam(); } }}
-                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: C.txt, fontFamily: GEORGIA, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
+                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: AC.txt, fontFamily: GEORGIA, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
                 placeholder="Preguntá sobre las dinámicas del equipo..." />
               <button onClick={sendTeam} disabled={teamLoading || !teamInput.trim()}
                 style={{ background: "transparent", border: "1px solid " + C.gold, borderRadius: 20, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1.2em", cursor: "pointer", textTransform: "uppercase", opacity: teamLoading || !teamInput.trim() ? 0.3 : 1, alignSelf: "flex-end", marginBottom: 2 }}>
@@ -1586,7 +1683,7 @@ INSTRUCCIONES:
 
           {/* Chat */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative", background: AC.bg }}>
-            <div style={{ flex: 1, padding: "1.5rem 4rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div style={{ flex: 1, padding: "1.5rem clamp(60px, 12vw, 170px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {msgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem" }}>
                   Chateá con el diseño de {selected.nombre}. Las respuestas están basadas en su perfil completo.
@@ -1612,10 +1709,10 @@ INSTRUCCIONES:
               )}
               <div ref={chatEndRef} />
             </div>
-            <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
+            <div style={{ padding: "1rem clamp(60px, 12vw, 170px)", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
               <textarea value={input} onChange={e => setInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: C.txt, fontFamily: GEORGIA, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
+                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: AC.txt, fontFamily: GEORGIA, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
                 placeholder={`Preguntá sobre el diseño de ${selected.nombre}...`} />
               <button onClick={send} disabled={loading || !input.trim()}
                 style={{ background: "transparent", border: "1px solid " + C.gold, borderRadius: 20, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1.2em", cursor: "pointer", textTransform: "uppercase", opacity: loading || !input.trim() ? 0.3 : 1, alignSelf: "flex-end", marginBottom: 2 }}>
