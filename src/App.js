@@ -214,7 +214,12 @@ const CHIPS_EN = [
 const C = { bg: "#080808", gold: "#b89a4e", txt: "#f0ebe0", dim: "rgba(240,235,224,0.45)" };
 
 function md(t) {
-  return t.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#d4b96a">$1</strong>').replace(/\n/g, "<br/>");
+  return t
+    .replace(/^### (.+)$/gm, '<span style="color:#b89a4e;font-weight:600">$1</span>')
+    .replace(/^## (.+)$/gm, '<span style="color:#b89a4e;font-weight:600">$1</span>')
+    .replace(/^# (.+)$/gm, '<span style="color:#b89a4e;font-weight:600">$1</span>')
+    .replace(/\*\*(.*?)\*\*/g, '<span style="color:#b89a4e;font-weight:600">$1</span>')
+    .replace(/\n/g, "<br/>");
 }
 
 const logo = { fontFamily: "monospace", fontSize: ".7rem", letterSpacing: ".5em", color: "#b89a4e", border: "1px solid #b89a4e", padding: ".4em 1em", display: "inline-block", marginBottom: "3rem" };
@@ -254,7 +259,7 @@ function Welcome({ go, lang, setLang }) {
           {lang === "en" ? "An AI that responds according to how you're designed." : "Una IA que responde según cómo estás diseñado."}
         </div>
         <div style={{ maxWidth: 300, margin: "0 auto", display: "flex", flexDirection: "column", gap: ".8rem" }}>
-          <button onClick={() => go("register")} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>
+          <button onClick={() => go("register")} style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>
             {lang === "en" ? "Create my account" : "Crear mi cuenta"}
           </button>
           <button onClick={() => go("login")} style={{ background: "transparent", color: C.dim, border: "1px solid rgba(184,154,78,.3)", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>
@@ -401,7 +406,7 @@ function Register({ go, lang, setDynamicUser }) {
               Acepto los <span style={{ color: C.gold }}>términos y condiciones</span> de uso de SIMPLE. Esta herramienta es orientativa y no reemplaza el consejo profesional.
             </label>
           </div>
-          <button onClick={ok} disabled={loading || !f.tyc} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading || !f.tyc ? 0.5 : 1 }}>
+          <button onClick={ok} disabled={loading || !f.tyc} style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading || !f.tyc ? 0.5 : 1 }}>
             {loading ? "Calculando tu diseño..." : "Registrarme"}
           </button>
         </div>
@@ -468,7 +473,7 @@ function Login({ go, lang, setDynamicUser }) {
       if (user.password_hash !== pass) {
         setErr(lang === "en" ? "Wrong password." : "Contraseña incorrecta."); setLoading(false); return;
       }
-      setDynamicUser({ ...user.diseno, email: emailClean, rol: user.rol });
+      setDynamicUser({ ...user.diseno, nombre: user.nombre, apellido: user.apellido, email: emailClean, rol: user.rol });
       
       // Verificar si tiene conversaciones previas para saltar el onboarding
       try {
@@ -504,7 +509,7 @@ function Login({ go, lang, setDynamicUser }) {
           <input style={inp} type="email" placeholder="tu@email.com" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
           <label style={lbl}>{lang === "en" ? "Password" : "Contraseña"}</label>
           <Eye value={pass} onChange={e => setPass(e.target.value)} placeholder={lang === "en" ? "Your password" : "Tu contraseña"} onKeyDown={e => e.key === "Enter" && ok()} />
-          <button onClick={ok} disabled={loading} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading ? 0.7 : 1 }}>
+          <button onClick={ok} disabled={loading} style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading ? 0.7 : 1 }}>
             {loading ? "..." : (lang === "en" ? "Sign in" : "Ingresar")}
           </button>
         </div>
@@ -555,7 +560,7 @@ function ParagraphStar({ text, onStar }) {
         style={{ background: "none", border: "none", cursor: starred ? "default" : "pointer", padding: 0, paddingTop: ".2rem", flexShrink: 0, fontSize: ".9rem", color: starColor, transition: "color .2s", lineHeight: 1 }}>
         ★
       </button>
-      <div style={{ fontSize: "1rem", color: C.txt, lineHeight: 1.85, fontFamily: NUNITO }}
+      <div style={{ fontSize: "1rem", color: C.txt, lineHeight: 1.85, fontFamily: GEORGIA }}
         dangerouslySetInnerHTML={{ __html: md(text) }} />
     </div>
   );
@@ -952,7 +957,7 @@ For vague questions, ask ONE clarifying question first.`;
             placeholder={lang === "en" ? "Your insights will appear here when you ⭐ them from the chat. You can also write freely..." : "Tus insights aparecerán acá cuando los ⭐ desde el chat. También podés escribir libremente..."} />
         </div>
       )}
-      <div style={{ flex: 1, maxWidth: 700, margin: "0 auto", width: "100%", padding: "0 2.5rem", display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, maxWidth: 720, margin: "0 auto", width: "100%", padding: "0 4rem", display: "flex", flexDirection: "column" }}>
         <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", paddingRight: "1rem", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
           {msgs.length === 0 && (
             <div style={{ textAlign: "center", padding: "1.8rem 1rem", border: "1px solid rgba(184,154,78,.15)" }}>
@@ -992,7 +997,7 @@ For vague questions, ask ONE clarifying question first.`;
                 {m.role === "user" ? (lang === "en" ? "You" : "Vos") : "SIMPLE"}
               </div>
               {m.role === "assistant" ? (
-                <div style={{ fontSize: "1rem", color: C.txt, lineHeight: 1.85, fontFamily: NUNITO }}
+                <div style={{ fontSize: "1rem", color: C.txt, lineHeight: 1.85, fontFamily: GEORGIA }}
                   dangerouslySetInnerHTML={{ __html: md(m.content) }} />
               ) : (
                 <div style={{ fontSize: "1rem", fontStyle: "italic", color: "rgba(240,235,224,.55)", lineHeight: 1.7, fontFamily: NUNITO }}
@@ -1026,7 +1031,7 @@ For vague questions, ask ONE clarifying question first.`;
               style={{ background: "none", border: "none", color: pdfNombre ? C.gold : C.dim, cursor: "pointer", fontSize: "1.1rem", padding: 0, marginBottom: 4, opacity: pdfLoading ? 0.5 : 1 }}>
               {pdfLoading ? "⏳" : "📎"}
             </button>
-            <textarea style={{ flex: 1, background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: NUNITO, fontSize: ".95rem", padding: ".6rem 0", outline: "none", resize: "none", minHeight: "2rem", lineHeight: 1.5 }}
+            <textarea style={{ flex: 1, background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: GEORGIA, fontSize: ".95rem", padding: ".6rem 0", outline: "none", resize: "none", minHeight: "2rem", lineHeight: 1.5 }}
               value={input} placeholder={lang === "en" ? "Ask your question..." : "Hacé tu pregunta..."}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} />
@@ -1096,7 +1101,7 @@ Respondé SOLO con un JSON válido sin markdown:
   }
 
   const cardStyle = { width: "100%", maxWidth: 520, border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)", borderRadius: 16 };
-  const btnPrimary = { background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%", marginTop: "1.2rem" };
+  const btnPrimary = { background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%", marginTop: "1.2rem" };
   const btnSecondary = { background: "transparent", color: C.dim, border: "1px solid rgba(184,154,78,.3)", fontFamily: "monospace", fontSize: ".63rem", letterSpacing: ".25em", padding: ".7em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%", marginTop: ".6rem" };
 
   return (
@@ -1176,7 +1181,7 @@ function AdminLogin({ onLogin }) {
         <input style={inp} type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
         <label style={lbl}>Contraseña</label>
         <Eye value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
-        <button onClick={ok} style={{ background: C.gold, color: C.bg, border: "none", fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%", marginTop: ".5rem" }}>
+        <button onClick={ok} style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%", marginTop: ".5rem" }}>
           Ingresar
         </button>
       </div>
@@ -1503,7 +1508,7 @@ INSTRUCCIONES:
 
           {/* Chat de equipo */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", background: AC.bg }}>
-            <div style={{ flex: 1, padding: "1.5rem 3rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div style={{ flex: 1, padding: "1.5rem 4rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {teamMsgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem", lineHeight: 1.8 }}>
                   <div style={{ fontSize: "1.1rem", color: C.txt, marginBottom: ".5rem" }}>
@@ -1517,7 +1522,7 @@ INSTRUCCIONES:
                   <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: m.role === "user" ? AC.dim : gold, marginBottom: ".25rem", textTransform: "uppercase" }}>
                     {m.role === "user" ? "Fran" : "SIMPLE"}
                   </div>
-                  <div style={{ fontSize: ".9rem", lineHeight: 1.8, color: m.role === "user" ? AC.dim : AC.txt, fontStyle: m.role === "user" ? "italic" : "normal" }}
+                  <div style={{ fontSize: ".9rem", lineHeight: 1.85, color: m.role === "user" ? AC.dim : AC.txt, fontStyle: m.role === "user" ? "italic" : "normal", fontFamily: m.role === "assistant" ? GEORGIA : NUNITO }}
                     dangerouslySetInnerHTML={{ __html: md(m.content) }} />
                 </div>
               ))}
@@ -1534,7 +1539,7 @@ INSTRUCCIONES:
             <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
               <textarea value={teamInput} onChange={e => setTeamInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendTeam(); } }}
-                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
+                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: C.txt, fontFamily: GEORGIA, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
                 placeholder="Preguntá sobre las dinámicas del equipo..." />
               <button onClick={sendTeam} disabled={teamLoading || !teamInput.trim()}
                 style={{ background: "transparent", border: "1px solid " + C.gold, borderRadius: 20, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1.2em", cursor: "pointer", textTransform: "uppercase", opacity: teamLoading || !teamInput.trim() ? 0.3 : 1, alignSelf: "flex-end", marginBottom: 2 }}>
@@ -1581,7 +1586,7 @@ INSTRUCCIONES:
 
           {/* Chat */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative", background: AC.bg }}>
-            <div style={{ flex: 1, padding: "1.5rem 3rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div style={{ flex: 1, padding: "1.5rem 4rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {msgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem" }}>
                   Chateá con el diseño de {selected.nombre}. Las respuestas están basadas en su perfil completo.
@@ -1593,7 +1598,7 @@ INSTRUCCIONES:
                   <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: m.role === "user" ? AC.dim : gold, marginBottom: ".25rem", textTransform: "uppercase" }}>
                     {m.role === "user" ? "Fran" : "SIMPLE"}
                   </div>
-                  <div style={{ fontSize: ".9rem", lineHeight: 1.8, color: m.role === "user" ? AC.dim : AC.txt, fontStyle: m.role === "user" ? "italic" : "normal" }}
+                  <div style={{ fontSize: ".9rem", lineHeight: 1.85, color: m.role === "user" ? AC.dim : AC.txt, fontStyle: m.role === "user" ? "italic" : "normal", fontFamily: m.role === "assistant" ? GEORGIA : NUNITO }}
                     dangerouslySetInnerHTML={{ __html: md(m.content) }} />
                 </div>
               ))}
@@ -1610,7 +1615,7 @@ INSTRUCCIONES:
             <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
               <textarea value={input} onChange={e => setInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: C.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
+                style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: C.txt, fontFamily: GEORGIA, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
                 placeholder={`Preguntá sobre el diseño de ${selected.nombre}...`} />
               <button onClick={send} disabled={loading || !input.trim()}
                 style={{ background: "transparent", border: "1px solid " + C.gold, borderRadius: 20, color: C.gold, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".2em", padding: ".6em 1.2em", cursor: "pointer", textTransform: "uppercase", opacity: loading || !input.trim() ? 0.3 : 1, alignSelf: "flex-end", marginBottom: 2 }}>
