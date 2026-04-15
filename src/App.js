@@ -268,7 +268,7 @@ function Welcome({ go, lang, setLang }) {
         </div>
       </div>
       <div style={{ position: "fixed", bottom: "2rem", fontFamily: "monospace", fontSize: ".55rem", color: "rgba(240,235,224,.2)", letterSpacing: ".15em", textAlign: "center" }}>
-        {lang === "en" ? "SIMPLE · 2026  No generic answers. Designed for you." : "SIMPLE · 2026  Sin respuestas genéricas. Diseñado a tu medida."}
+        "SIMPLE es una herramienta creada y registrada por Fran Blanco. 2026"
       </div>
     </div>
   );
@@ -785,10 +785,16 @@ For vague questions, ask ONE clarifying question first.`;
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600&display=swap');
         @keyframes p{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
-        .tab-btn { background: none; border: none; cursor: pointer; font-family: monospace; font-size: .58rem; letter-spacing: .25em; text-transform: uppercase; padding: .5rem .9rem; color: rgba(240,235,224,.4); transition: color .2s; }
+        .chat-scroll::-webkit-scrollbar { width: 4px; }
+        textarea, input { color: ${darkModeUser ? "#f0ebe0" : "#1a1a1a"} !important; -webkit-text-fill-color: ${darkModeUser ? "#f0ebe0" : "#1a1a1a"} !important; caret-color: #b89a4e; }
+        textarea::placeholder, input::placeholder { color: ${darkModeUser ? "rgba(240,235,224,.3)" : "rgba(26,26,26,.35)"} !important; -webkit-text-fill-color: ${darkModeUser ? "rgba(240,235,224,.3)" : "rgba(26,26,26,.35)"} !important; }
+        .chat-scroll::-webkit-scrollbar-track { background: transparent; }
+        .chat-scroll::-webkit-scrollbar-thumb { background: rgba(184,154,78,.25); border-radius: 2px; }
+        .chat-scroll { scrollbar-width: thin; scrollbar-color: rgba(184,154,78,.25) transparent; }
+        .tab-btn { background: none; border: none; cursor: pointer; font-family: monospace; font-size: .58rem; letter-spacing: .25em; text-transform: uppercase; padding: .5rem .9rem; color: ${darkModeUser ? "rgba(240,235,224,.4)" : "rgba(26,26,26,.45)"}; transition: color .2s; }
         .tab-btn:hover { color: #b89a4e; }
         .tab-btn.active { color: #b89a4e; border-bottom: 1px solid #b89a4e; }
-        .tab-panel { padding: 1.2rem 2rem; border-bottom: 1px solid rgba(184,154,78,.1); background: rgba(255,255,255,.02); font-size: .88rem; line-height: 1.8; color: rgba(240,235,224,.7); font-family: '${NUNITO}'; }
+        .tab-panel { padding: 1.2rem 2rem; border-bottom: 1px solid rgba(184,154,78,.1); background: ${darkModeUser ? "rgba(255,255,255,.02)" : "rgba(0,0,0,.03)"}; font-size: .88rem; line-height: 1.8; color: ${darkModeUser ? "rgba(240,235,224,.7)" : "rgba(26,26,26,.7)"}; font-family: '${NUNITO}'; }
       `}</style>
 
       {/* Panel de desafíos */}
@@ -970,8 +976,8 @@ For vague questions, ask ONE clarifying question first.`;
             placeholder={lang === "en" ? "Your insights will appear here when you ⭐ them from the chat. You can also write freely..." : "Tus insights aparecerán acá cuando los ⭐ desde el chat. También podés escribir libremente..."} />
         </div>
       )}
-      <div style={{ flex: 1, maxWidth: 900, margin: "0 auto", width: "100%", padding: "0 clamp(60px, 20vw, 300px)", display: "flex", flexDirection: "column" }}>
-        <div ref={chatContainerRef} style={{ flex: 1, padding: "1.8rem 0", paddingRight: "1rem", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
+      <div style={{ flex: 1, maxWidth: 900, margin: "0 auto", width: "100%", padding: "0 clamp(60px, 10vw, 150px)", display: "flex", flexDirection: "column" }}>
+        <div ref={chatContainerRef} className="chat-scroll" style={{ flex: 1, padding: "1.8rem 0", paddingRight: "2rem", display: "flex", flexDirection: "column", gap: "1.8rem", overflowY: "auto", maxHeight: "58vh", minHeight: 180 }}>
           {msgs.length === 0 && (
             <div style={{ textAlign: "center", padding: "1.8rem 1rem", border: "1px solid rgba(184,154,78,.15)" }}>
               {desafioActual ? (
@@ -1044,7 +1050,7 @@ For vague questions, ask ONE clarifying question first.`;
               style={{ background: "none", border: "none", color: pdfNombre ? C.gold : C.dim, cursor: "pointer", fontSize: "1.1rem", padding: 0, marginBottom: 4, opacity: pdfLoading ? 0.5 : 1 }}>
               {pdfLoading ? "⏳" : "📎"}
             </button>
-            <textarea style={{ flex: 1, background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.25)", color: C.txt, fontFamily: GEORGIA, fontSize: ".95rem", padding: ".6rem 0", outline: "none", resize: "none", minHeight: "2rem", lineHeight: 1.5 }}
+            <textarea style={{ flex: 1, background: "transparent", border: "none", borderBottom: `1px solid ${C.gold}40`, color: C.txt, fontFamily: GEORGIA, fontSize: ".95rem", padding: ".6rem 0", outline: "none", resize: "none", minHeight: "2rem", lineHeight: 1.5 }}
               value={input} placeholder={lang === "en" ? "Ask your question..." : "Hacé tu pregunta..."}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} />
@@ -1054,8 +1060,8 @@ For vague questions, ask ONE clarifying question first.`;
           </div>
         </div>
       </div>
-      <div style={{ textAlign: "center", padding: ".6rem", fontFamily: "monospace", fontSize: ".5rem", color: "rgba(240,235,224,.15)", letterSpacing: ".15em" }}>
-        {lang === "en" ? "SIMPLE · 2026  No generic answers. Designed for you." : "SIMPLE · 2026  Sin respuestas genéricas. Diseñado a tu medida."}
+      <div style={{ textAlign: "center", padding: ".6rem", fontFamily: "monospace", fontSize: ".5rem", color: darkModeUser ? "rgba(240,235,224,.15)" : "rgba(26,26,26,.3)", letterSpacing: ".15em" }}>
+        "SIMPLE es una herramienta creada y registrada por Fran Blanco. 2026"
       </div>
     </div>
   );
@@ -1162,7 +1168,7 @@ Respondé SOLO con un JSON válido sin markdown:
       </div>
 
       <div style={{ marginTop: "1.5rem", fontFamily: "monospace", fontSize: ".5rem", color: "rgba(240,235,224,.2)", letterSpacing: ".15em" }}>
-        SIMPLE · 2026
+        SIMPLE es una herramienta creada y registrada por Fran Blanco. 2026
       </div>
     </div>
   );
@@ -1605,7 +1611,7 @@ INSTRUCCIONES:
 
           {/* Chat de equipo */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", position: "relative", background: AC.bg }}>
-            <div style={{ flex: 1, padding: "1.5rem clamp(60px, 12vw, 170px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div style={{ flex: 1, padding: `1.5rem ${panelVisible ? "clamp(60px, 12vw, 170px)" : "clamp(60px, 15vw, 300px)"}`, overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {teamMsgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem", lineHeight: 1.8 }}>
                   <div style={{ fontSize: "1.1rem", color: C.txt, marginBottom: ".5rem" }}>
@@ -1633,7 +1639,7 @@ INSTRUCCIONES:
               )}
               <div ref={teamEndRef} />
             </div>
-            <div style={{ padding: "1rem clamp(60px, 12vw, 170px)", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
+            <div style={{ padding: `1rem ${panelVisible ? "clamp(60px, 12vw, 170px)" : "clamp(60px, 15vw, 300px)"}`, borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
               <textarea value={teamInput} onChange={e => setTeamInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendTeam(); } }}
                 style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: AC.txt, fontFamily: GEORGIA, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
@@ -1683,7 +1689,7 @@ INSTRUCCIONES:
 
           {/* Chat */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, position: "relative", background: AC.bg }}>
-            <div style={{ flex: 1, padding: "1.5rem clamp(60px, 12vw, 170px)", overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+            <div style={{ flex: 1, padding: `1.5rem ${panelVisible ? "clamp(60px, 12vw, 170px)" : "clamp(60px, 15vw, 300px)"}`, overflowY: "auto", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
               {msgs.length === 0 && (
                 <div style={{ color: C.dim, fontSize: ".85rem", textAlign: "center", marginTop: "2rem" }}>
                   Chateá con el diseño de {selected.nombre}. Las respuestas están basadas en su perfil completo.
@@ -1709,7 +1715,7 @@ INSTRUCCIONES:
               )}
               <div ref={chatEndRef} />
             </div>
-            <div style={{ padding: "1rem clamp(60px, 12vw, 170px)", borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
+            <div style={{ padding: `1rem ${panelVisible ? "clamp(60px, 12vw, 170px)" : "clamp(60px, 15vw, 300px)"}`, borderTop: "1px solid rgba(184,154,78,.15)", display: "flex", gap: ".8rem", alignItems: "flex-end" }}>
               <textarea value={input} onChange={e => setInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
                 style={{ flex: 1, background: "rgba(255,255,255,.02)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: AC.txt, fontFamily: GEORGIA, fontSize: ".9rem", padding: ".8rem 1rem", outline: "none", resize: "none", lineHeight: 1.6, minHeight: 120, maxHeight: 300, boxSizing: "border-box" }}
@@ -1739,7 +1745,7 @@ export default function App() {
   function go(s, e) { if (e) setEmail(e); setScreen(s); }
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }}>
-      <style>{"*{box-sizing:border-box;margin:0;padding:0}body{background:#080808}input,textarea{color:#f0ebe0!important;-webkit-text-fill-color:#f0ebe0!important;caret-color:#b89a4e}input::placeholder,textarea::placeholder{color:rgba(240,235,224,.3)!important;-webkit-text-fill-color:rgba(240,235,224,.3)!important}input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #080808 inset!important;-webkit-text-fill-color:#f0ebe0!important}"}</style>
+      <style>{"*{box-sizing:border-box;margin:0;padding:0}body{background:#080808}input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #080808 inset!important;-webkit-text-fill-color:#f0ebe0!important}"}</style>
       {screen === "welcome" && <Welcome go={go} lang={lang} setLang={setLang} />}
       {screen === "register" && <Register go={go} lang={lang} setDynamicUser={setDynamicUser} />}
       {screen === "pending" && <Pending email={email} go={go} lang={lang} />}
