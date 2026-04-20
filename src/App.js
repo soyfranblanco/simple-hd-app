@@ -1303,6 +1303,7 @@ function AdminPanel() {
   const [view, setView] = useState("lista");
   const [panelVisible, setPanelVisible] = useState(true);
   const chatEndRef = React.useRef(null);
+  const lastUserMsgRef = React.useRef(null);
 
   React.useEffect(() => {
     if (!authed) return;
@@ -1316,11 +1317,11 @@ function AdminPanel() {
     cargar();
   }, [authed]);
 
-  // Scroll solo cuando el usuario envía — no al cargar historial
+  // Scroll al inicio del último mensaje del usuario (para leer desde arriba)
   const shouldScrollRef = React.useRef(false);
   React.useEffect(() => {
-    if (shouldScrollRef.current) {
-      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (shouldScrollRef.current && lastUserMsgRef.current) {
+      lastUserMsgRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [msgs, loading]);
 
@@ -1437,9 +1438,10 @@ function AdminPanel() {
   const [teamLoading, setTeamLoading] = useState(false);
   const teamEndRef = React.useRef(null);
 
+  const lastUserTeamMsgRef = React.useRef(null);
   React.useEffect(() => {
-    if (shouldScrollRef.current) {
-      teamEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (shouldScrollRef.current && lastUserTeamMsgRef.current) {
+      lastUserTeamMsgRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [teamMsgs, teamLoading]);
 
@@ -1621,7 +1623,9 @@ INSTRUCCIONES:
                 </div>
               )}
               {teamMsgs.map((m, i) => (
-                <div key={i} style={{ textAlign: m.role === "user" ? "right" : "left" }}>
+                <div key={i}
+                  ref={m.role === "user" ? lastUserTeamMsgRef : null}
+                  style={{ textAlign: m.role === "user" ? "right" : "left" }}>
                   <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: m.role === "user" ? AC.dim : gold, marginBottom: ".25rem", textTransform: "uppercase" }}>
                     {m.role === "user" ? "Fran" : "SIMPLE"}
                   </div>
@@ -1697,7 +1701,9 @@ INSTRUCCIONES:
                 </div>
               )}
               {msgs.map((m, i) => (
-                <div key={i} style={{ textAlign: m.role === "user" ? "right" : "left" }}>
+                <div key={i}
+                  ref={m.role === "user" ? lastUserMsgRef : null}
+                  style={{ textAlign: m.role === "user" ? "right" : "left" }}>
                   <div style={{ fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".3em", color: m.role === "user" ? AC.dim : gold, marginBottom: ".25rem", textTransform: "uppercase" }}>
                     {m.role === "user" ? "Fran" : "SIMPLE"}
                   </div>
