@@ -441,7 +441,11 @@ function Register({ go, lang, setDynamicUser }) {
   const [f, setF] = useState({ nom: "", ape: "", email: "", tel: "", fecha: "", hora: "", lugar: "", pass: "" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showSlider, setShowSlider] = useState(true);
+  const [showSlider, setShowSlider] = useState(false);
+  React.useEffect(() => {
+    const t = setTimeout(() => setShowSlider(true), 4000);
+    return () => clearTimeout(t);
+  }, []);
   const u = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   async function ok() {
