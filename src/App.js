@@ -320,32 +320,71 @@ function CityInput({ value, onChange, placeholder }) {
   );
 }
 
-function SliderExplicativo({ onClose }) {
+function SliderExplicativo({ onClose, lang }) {
   const [slide, setSlide] = useState(0);
   const total = 4;
 
-  const slides = [
-    {
-      num: "01 / 04",
-      titulo: <>Somos, en esencia, <span style={{ color: C.gold }}>información.</span></>,
-      cuerpo: "Hay información sobre cómo funcionás que siempre estuvo ahí — pero que nunca te enseñaron a leer."
+  const content = {
+    es: {
+      titulo: "¿Por qué pedimos esta información?",
+      anterior: "Anterior",
+      entendido: "Entendido",
+      siguiente: "Siguiente",
+      slides: [
+        {
+          num: "01 / 04",
+          titulo: <>Somos, en esencia, <span style={{ color: C.gold }}>información.</span></>,
+          cuerpo: "Hay información sobre cómo funcionás que siempre estuvo ahí — pero que nunca te enseñaron a leer."
+        },
+        {
+          num: "02 / 04",
+          titulo: <>Tu origen define <span style={{ color: C.gold }}>tu configuración.</span></>,
+          cuerpo: "Dónde y cuándo naciste determina algo único: tu forma de tomar decisiones, de procesar la presión, de relacionarte con otros."
+        },
+        {
+          num: "03 / 04",
+          titulo: <>No es astrología. Es <span style={{ color: C.gold }}>un mapa.</span></>,
+          cuerpo: "El Diseño Humano es el sistema que permite leer esa información. Una cartografía de cómo estás construido — sin creencias, sin interpretaciones."
+        },
+        {
+          num: "04 / 04",
+          titulo: <>Por eso pedimos <span style={{ color: C.gold }}>tus datos.</span></>,
+          cuerpo: "Con tu fecha, hora y lugar de nacimiento generamos tu carta. A partir de ahí, todo lo que te decimos es específico para vos — no una respuesta genérica."
+        }
+      ]
     },
-    {
-      num: "02 / 04",
-      titulo: <>Tu origen define <span style={{ color: C.gold }}>tu configuración.</span></>,
-      cuerpo: "Dónde y cuándo naciste determina algo único: tu forma de tomar decisiones, de procesar la presión, de relacionarte con otros."
-    },
-    {
-      num: "03 / 04",
-      titulo: <>No es astrología. Es <span style={{ color: C.gold }}>un mapa.</span></>,
-      cuerpo: "El Diseño Humano es el sistema que permite leer esa información. Una cartografía de cómo estás construido — sin creencias, sin interpretaciones."
-    },
-    {
-      num: "04 / 04",
-      titulo: <>Por eso pedimos <span style={{ color: C.gold }}>tus datos.</span></>,
-      cuerpo: "Con tu fecha, hora y lugar de nacimiento generamos tu carta. A partir de ahí, todo lo que te decimos es específico para vos — no una respuesta genérica."
+    en: {
+      titulo: "Why do we ask for this information?",
+      anterior: "Previous",
+      entendido: "Got it",
+      siguiente: "Next",
+      slides: [
+        {
+          num: "01 / 04",
+          titulo: <>We are, in essence, <span style={{ color: C.gold }}>information.</span></>,
+          cuerpo: "There is information about how you work that has always been there — but that you were never taught to read."
+        },
+        {
+          num: "02 / 04",
+          titulo: <>Your origin defines <span style={{ color: C.gold }}>your configuration.</span></>,
+          cuerpo: "Where and when you were born determines something unique: how you make decisions, process pressure, and relate to others."
+        },
+        {
+          num: "03 / 04",
+          titulo: <>It's not astrology. It's <span style={{ color: C.gold }}>a map.</span></>,
+          cuerpo: "Human Design is the system that allows us to read that information. A blueprint of how you are built — no beliefs, no interpretations."
+        },
+        {
+          num: "04 / 04",
+          titulo: <>That's why we ask for <span style={{ color: C.gold }}>your data.</span></>,
+          cuerpo: "With your date, time, and place of birth, we generate your chart. From there, everything we tell you is specific to you — not a generic answer."
+        }
+      ]
     }
-  ];
+  };
+
+  const t = content[lang] || content.es;
+  const slides = t.slides;
 
   function siguiente() {
     if (slide === total - 1) { onClose(); return; }
@@ -378,7 +417,7 @@ function SliderExplicativo({ onClose }) {
         {/* Header */}
         <div style={{ padding: "1.5rem 2rem 1.2rem", borderBottom: "0.5px solid rgba(184,154,78,0.12)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontFamily: "monospace", fontSize: ".52rem", letterSpacing: ".4em", color: C.gold, textTransform: "uppercase" }}>
-            ¿Por qué pedimos esta información?
+            {t.titulo}
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(240,235,224,0.3)", fontSize: "1.2rem", cursor: "pointer", lineHeight: 1 }}>×</button>
         </div>
@@ -428,7 +467,7 @@ function SliderExplicativo({ onClose }) {
               padding: ".6em 1.4em", cursor: "pointer",
               textTransform: "uppercase"
             }}>
-              {slide === total - 1 ? "Entendido" : "Siguiente"}
+              {slide === total - 1 ? t.entendido : t.siguiente}
             </button>
           </div>
         </div>
@@ -499,7 +538,7 @@ function Register({ go, lang, setDynamicUser }) {
   }
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "2.5rem 2rem", fontFamily: "Georgia,serif", color: C.txt, overflowY: "auto" }}>
-      {showSlider && <SliderExplicativo onClose={() => setShowSlider(false)} />}
+      {showSlider && <SliderExplicativo onClose={() => setShowSlider(false)} lang={lang} />}
       <div style={logo}>SIMPLE</div>
       <div style={{ width: "100%", maxWidth: 420 }}>
         <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem" }}>Crear cuenta</div>
