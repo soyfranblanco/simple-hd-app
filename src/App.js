@@ -253,10 +253,10 @@ function Welcome({ go, lang, setLang }) {
       <div style={logo}>SIMPLE</div>
       <div style={{ textAlign: "center", maxWidth: 560 }}>
         <div style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 300, lineHeight: 1.25, marginBottom: "1.4rem", fontFamily: GEORGIA }}>
-          {lang === "en" ? <>Your personal<br/><span style={{ color: C.gold, fontStyle: "italic" }}>map for decision-making.</span></> : <>Tu mapa personal de<br/><span style={{ color: C.gold, fontStyle: "italic" }}>toma de decisiones.</span></>}
+          {lang === "en" ? <>Your personal<br/><span style={{ color: C.gold, fontStyle: "italic" }}>decision-making system.</span></> : <>Tu sistema personal de<br/><span style={{ color: C.gold, fontStyle: "italic" }}>toma de decisiones.</span></>}
         </div>
         <div style={{ color: C.dim, fontSize: "1rem", lineHeight: 1.8, maxWidth: 460, margin: "0 auto 2.5rem", fontFamily: NUNITO, fontWeight: 400 }}>
-          {lang === "en" ? "An AI to access the information you already carry within." : "Una IA para acceder a la información que ya llevás dentro."}
+          {lang === "en" ? "An AI that responds according to how you're designed." : "Una IA que responde según cómo estás diseñado."}
         </div>
         <div style={{ maxWidth: 300, margin: "0 auto", display: "flex", flexDirection: "column", gap: ".8rem" }}>
           <button onClick={() => go("register")} style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%" }}>
@@ -320,10 +320,128 @@ function CityInput({ value, onChange, placeholder }) {
   );
 }
 
+function SliderExplicativo({ onClose }) {
+  const [slide, setSlide] = useState(0);
+  const total = 4;
+
+  const slides = [
+    {
+      num: "01 / 04",
+      titulo: <>Somos, en esencia, <span style={{ color: C.gold }}>información.</span></>,
+      cuerpo: "Hay información sobre cómo funcionás que siempre estuvo ahí — pero que nunca te enseñaron a leer."
+    },
+    {
+      num: "02 / 04",
+      titulo: <>Tu origen define <span style={{ color: C.gold }}>tu configuración.</span></>,
+      cuerpo: "Dónde y cuándo naciste determina algo único: tu forma de tomar decisiones, de procesar la presión, de relacionarte con otros."
+    },
+    {
+      num: "03 / 04",
+      titulo: <>No es astrología. Es <span style={{ color: C.gold }}>un mapa.</span></>,
+      cuerpo: "El Diseño Humano es el sistema que permite leer esa información. Una cartografía de cómo estás construido — sin creencias, sin interpretaciones."
+    },
+    {
+      num: "04 / 04",
+      titulo: <>Por eso pedimos <span style={{ color: C.gold }}>tus datos.</span></>,
+      cuerpo: "Con tu fecha, hora y lugar de nacimiento generamos tu carta. A partir de ahí, todo lo que te decimos es específico para vos — no una respuesta genérica."
+    }
+  ];
+
+  function siguiente() {
+    if (slide === total - 1) { onClose(); return; }
+    setSlide(s => s + 1);
+  }
+
+  function anterior() {
+    if (slide === 0) return;
+    setSlide(s => s - 1);
+  }
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0,
+      background: "rgba(8,8,8,0.92)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 200, backdropFilter: "blur(6px)",
+      padding: "1rem"
+    }}>
+      <div style={{
+        width: "min(540px, 100%)",
+        background: "#0e0e0e",
+        border: "0.5px solid rgba(184,154,78,0.3)",
+        position: "relative",
+        fontFamily: GEORGIA
+      }}>
+        {/* Línea dorada top */}
+        <div style={{ height: 1, background: "linear-gradient(90deg, transparent, #b89a4e, transparent)" }} />
+
+        {/* Header */}
+        <div style={{ padding: "1.5rem 2rem 1.2rem", borderBottom: "0.5px solid rgba(184,154,78,0.12)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontFamily: "monospace", fontSize: ".52rem", letterSpacing: ".4em", color: C.gold, textTransform: "uppercase" }}>
+            ¿Por qué pedimos esta información?
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(240,235,224,0.3)", fontSize: "1.2rem", cursor: "pointer", lineHeight: 1 }}>×</button>
+        </div>
+
+        {/* Slide */}
+        <div style={{ padding: "2.5rem 2rem 2rem", minHeight: 220 }}>
+          <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: "rgba(184,154,78,0.5)", marginBottom: "1.2rem", textTransform: "uppercase" }}>
+            {slides[slide].num}
+          </div>
+          <div style={{ fontSize: "clamp(1.3rem, 3vw, 1.75rem)", fontWeight: 300, color: C.txt, lineHeight: 1.3, marginBottom: "1rem", fontStyle: "italic" }}>
+            {slides[slide].titulo}
+          </div>
+          <div style={{ fontSize: ".95rem", color: "rgba(240,235,224,0.55)", lineHeight: 1.75, fontWeight: 300 }}>
+            {slides[slide].cuerpo}
+          </div>
+        </div>
+
+        {/* Barra de progreso */}
+        <div style={{ height: 1, background: "rgba(184,154,78,0.1)", margin: "0 2rem" }}>
+          <div style={{ height: "100%", background: C.gold, width: `${(slide + 1) / total * 100}%`, transition: "width .3s ease" }} />
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: "1.2rem 2rem 1.8rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 6 }}>
+            {Array.from({ length: total }).map((_, i) => (
+              <div key={i} onClick={() => setSlide(i)} style={{
+                width: 5, height: 5, borderRadius: "50%",
+                background: i === slide ? C.gold : "rgba(184,154,78,0.2)",
+                cursor: "pointer", transition: "background .2s"
+              }} />
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={anterior} disabled={slide === 0} style={{
+              background: "transparent",
+              border: "0.5px solid rgba(184,154,78,0.2)",
+              color: "rgba(240,235,224,0.4)",
+              fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".2em",
+              padding: ".6em 1.2em", cursor: slide === 0 ? "default" : "pointer",
+              textTransform: "uppercase", opacity: slide === 0 ? 0.2 : 1,
+              transition: "all .2s"
+            }}>Anterior</button>
+            <button onClick={siguiente} style={{
+              background: C.gold, border: "none", color: C.bg,
+              fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".2em",
+              padding: ".6em 1.4em", cursor: "pointer",
+              textTransform: "uppercase"
+            }}>
+              {slide === total - 1 ? "Entendido" : "Siguiente"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Register({ go, lang, setDynamicUser }) {
   const [f, setF] = useState({ nom: "", ape: "", email: "", tel: "", fecha: "", hora: "", lugar: "", pass: "" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSlider, setShowSlider] = useState(true);
   const u = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   async function ok() {
@@ -377,6 +495,7 @@ function Register({ go, lang, setDynamicUser }) {
   }
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "2.5rem 2rem", fontFamily: "Georgia,serif", color: C.txt, overflowY: "auto" }}>
+      {showSlider && <SliderExplicativo onClose={() => setShowSlider(false)} />}
       <div style={logo}>SIMPLE</div>
       <div style={{ width: "100%", maxWidth: 420 }}>
         <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem" }}>Crear cuenta</div>
