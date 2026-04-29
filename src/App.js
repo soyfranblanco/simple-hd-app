@@ -324,67 +324,54 @@ function SliderExplicativo({ onClose, lang }) {
   const [slide, setSlide] = useState(0);
   const total = 4;
 
-  const content = {
-    es: {
-      titulo: "¿Por qué pedimos esta información?",
-      anterior: "Anterior",
-      entendido: "Entendido",
-      siguiente: "Siguiente",
-      slides: [
-        {
-          num: "01 / 04",
-          titulo: <>Somos, en esencia, <span style={{ color: C.gold }}>información.</span></>,
-          cuerpo: "Hay información sobre cómo funcionás que siempre estuvo ahí — pero que nunca te enseñaron a leer."
-        },
-        {
-          num: "02 / 04",
-          titulo: <>Tu origen define <span style={{ color: C.gold }}>tu configuración.</span></>,
-          cuerpo: "Dónde y cuándo naciste determina algo único: tu forma de tomar decisiones, de procesar la presión, de relacionarte con otros."
-        },
-        {
-          num: "03 / 04",
-          titulo: <>No es astrología. Es <span style={{ color: C.gold }}>un mapa.</span></>,
-          cuerpo: "El Diseño Humano es el sistema que permite leer esa información. Una cartografía de cómo estás construido — sin creencias, sin interpretaciones."
-        },
-        {
-          num: "04 / 04",
-          titulo: <>Por eso pedimos <span style={{ color: C.gold }}>tus datos.</span></>,
-          cuerpo: "Con tu fecha, hora y lugar de nacimiento generamos tu carta. A partir de ahí, todo lo que te decimos es específico para vos — no una respuesta genérica."
-        }
-      ]
+  const slidesES = [
+    {
+      num: "01 / 04",
+      titulo: <>Somos, en esencia, <span style={{ color: C.gold }}>información.</span></>,
+      cuerpo: "Hay información sobre cómo funcionás que siempre estuvo ahí — pero que nunca te enseñaron a leer."
     },
-    en: {
-      titulo: "Why do we ask for this information?",
-      anterior: "Previous",
-      entendido: "Got it",
-      siguiente: "Next",
-      slides: [
-        {
-          num: "01 / 04",
-          titulo: <>We are, in essence, <span style={{ color: C.gold }}>information.</span></>,
-          cuerpo: "There is information about how you work that has always been there — but that you were never taught to read."
-        },
-        {
-          num: "02 / 04",
-          titulo: <>Your origin defines <span style={{ color: C.gold }}>your configuration.</span></>,
-          cuerpo: "Where and when you were born determines something unique: how you make decisions, process pressure, and relate to others."
-        },
-        {
-          num: "03 / 04",
-          titulo: <>It's not astrology. It's <span style={{ color: C.gold }}>a map.</span></>,
-          cuerpo: "Human Design is the system that allows us to read that information. A blueprint of how you are built — no beliefs, no interpretations."
-        },
-        {
-          num: "04 / 04",
-          titulo: <>That's why we ask for <span style={{ color: C.gold }}>your data.</span></>,
-          cuerpo: "With your date, time, and place of birth, we generate your chart. From there, everything we tell you is specific to you — not a generic answer."
-        }
-      ]
+    {
+      num: "02 / 04",
+      titulo: <>Tu origen define <span style={{ color: C.gold }}>tu configuración.</span></>,
+      cuerpo: "Dónde y cuándo naciste determina algo único: tu forma de tomar decisiones, de procesar la presión, de relacionarte con otros."
+    },
+    {
+      num: "03 / 04",
+      titulo: <>No es astrología. Es <span style={{ color: C.gold }}>un mapa.</span></>,
+      cuerpo: "El Diseño Humano es el sistema que permite leer esa información. Una cartografía de cómo estás construido — sin creencias, sin interpretaciones."
+    },
+    {
+      num: "04 / 04",
+      titulo: <>Por eso pedimos <span style={{ color: C.gold }}>tus datos.</span></>,
+      cuerpo: "Con tu fecha, hora y lugar de nacimiento generamos tu carta. A partir de ahí, todo lo que te decimos es específico para vos — no una respuesta genérica."
     }
-  };
+  ];
 
-  const t = content[lang] || content.es;
-  const slides = t.slides;
+  const slidesEN = [
+    {
+      num: "01 / 04",
+      titulo: <>We are, in essence, <span style={{ color: C.gold }}>information.</span></>,
+      cuerpo: "There is information about how you function that has always been there — but no one ever taught you how to read it."
+    },
+    {
+      num: "02 / 04",
+      titulo: <>Your origin defines <span style={{ color: C.gold }}>your configuration.</span></>,
+      cuerpo: "Where and when you were born determines something unique: how you make decisions, how you process pressure, how you relate to others."
+    },
+    {
+      num: "03 / 04",
+      titulo: <>It's not astrology. It's <span style={{ color: C.gold }}>a map.</span></>,
+      cuerpo: "Human Design is the system that allows us to read that information. A blueprint of how you are built — no beliefs, no interpretations."
+    },
+    {
+      num: "04 / 04",
+      titulo: <>That's why we ask for <span style={{ color: C.gold }}>your data.</span></>,
+      cuerpo: "With your date, time and place of birth we generate your chart. From there, everything we tell you is specific to you — not a generic answer."
+    }
+  ];
+
+  const slides = lang === "en" ? slidesEN : slidesES;
+  const t = lang === "en";
 
   function siguiente() {
     if (slide === total - 1) { onClose(); return; }
@@ -417,7 +404,7 @@ function SliderExplicativo({ onClose, lang }) {
         {/* Header */}
         <div style={{ padding: "1.5rem 2rem 1.2rem", borderBottom: "0.5px solid rgba(184,154,78,0.12)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontFamily: "monospace", fontSize: ".52rem", letterSpacing: ".4em", color: C.gold, textTransform: "uppercase" }}>
-            {t.titulo}
+            {t ? "Why do we ask for this information?" : "¿Por qué pedimos esta información?"}
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(240,235,224,0.3)", fontSize: "1.2rem", cursor: "pointer", lineHeight: 1 }}>×</button>
         </div>
@@ -460,14 +447,14 @@ function SliderExplicativo({ onClose, lang }) {
               padding: ".6em 1.2em", cursor: slide === 0 ? "default" : "pointer",
               textTransform: "uppercase", opacity: slide === 0 ? 0.2 : 1,
               transition: "all .2s"
-            }}>Anterior</button>
+            }}>{t ? "Previous" : "Anterior"}</button>
             <button onClick={siguiente} style={{
               background: C.gold, border: "none", color: C.bg,
               fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".2em",
               padding: ".6em 1.4em", cursor: "pointer",
               textTransform: "uppercase"
             }}>
-              {slide === total - 1 ? t.entendido : t.siguiente}
+              {slide === total - 1 ? (t ? "Got it" : "Entendido") : (t ? "Next" : "Siguiente")}
             </button>
           </div>
         </div>
@@ -481,15 +468,16 @@ function Register({ go, lang, setDynamicUser }) {
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSlider, setShowSlider] = useState(false);
+  const isEn = lang === "en";
   React.useEffect(() => {
-    const t = setTimeout(() => setShowSlider(true), 4000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setShowSlider(true), 4000);
+    return () => clearTimeout(timer);
   }, []);
   const u = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   async function ok() {
     if (!f.nom || !f.ape || !f.email || !f.fecha || !f.hora || !f.lugar || !f.pass) {
-      setErr("Completá todos los campos obligatorios."); return;
+      setErr(isEn ? "Please fill in all required fields." : "Completá todos los campos obligatorios."); return;
     }
     setLoading(true);
     setErr("");
@@ -541,39 +529,45 @@ function Register({ go, lang, setDynamicUser }) {
       {showSlider && <SliderExplicativo onClose={() => setShowSlider(false)} lang={lang} />}
       <div style={logo}>SIMPLE</div>
       <div style={{ width: "100%", maxWidth: 420 }}>
-        <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem" }}>Crear cuenta</div>
-        <div style={{ color: C.dim, textAlign: "center", marginBottom: "1.5rem", fontSize: ".9rem", lineHeight: 1.6 }}>Ingresá tus datos para calcular tu diseño.</div>
+        <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem" }}>{isEn ? "Create account" : "Crear cuenta"}</div>
+        <div style={{ color: C.dim, textAlign: "center", marginBottom: "1.5rem", fontSize: ".9rem", lineHeight: 1.6 }}>{isEn ? "Enter your details to calculate your design." : "Ingresá tus datos para calcular tu diseño."}</div>
         <div style={{ border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)", borderRadius: 16 }}>
           {err && <div style={{ color: "#c06040", fontFamily: "monospace", fontSize: ".63rem", marginBottom: ".8rem", textAlign: "center" }}>{err}</div>}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <div><label style={lbl}>Nombre *</label><input style={inp} placeholder="Tu nombre" value={f.nom} onChange={e => u("nom", e.target.value)} /></div>
-            <div><label style={lbl}>Apellido *</label><input style={inp} placeholder="Tu apellido" value={f.ape} onChange={e => u("ape", e.target.value)} /></div>
+            <div><label style={lbl}>{isEn ? "First name *" : "Nombre *"}</label><input style={inp} placeholder={isEn ? "Your name" : "Tu nombre"} value={f.nom} onChange={e => u("nom", e.target.value)} /></div>
+            <div><label style={lbl}>{isEn ? "Last name *" : "Apellido *"}</label><input style={inp} placeholder={isEn ? "Your last name" : "Tu apellido"} value={f.ape} onChange={e => u("ape", e.target.value)} /></div>
           </div>
           <label style={lbl}>Email *</label>
-          <input style={inp} type="email" placeholder="tu@email.com" value={f.email} onChange={e => u("email", e.target.value)} />
-          <label style={lbl}>Teléfono</label>
+          <input style={inp} type="email" placeholder="you@email.com" value={f.email} onChange={e => u("email", e.target.value)} />
+          <label style={lbl}>{isEn ? "Phone" : "Teléfono"}</label>
           <input style={inp} type="tel" placeholder="+54 11 0000 0000" value={f.tel} onChange={e => u("tel", e.target.value)} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <div><label style={lbl}>Fecha *</label><input style={{ ...inp, colorScheme: "dark" }} type="date" value={f.fecha} onChange={e => u("fecha", e.target.value)} /></div>
-            <div><label style={lbl}>Hora *</label><input style={{ ...inp, colorScheme: "dark" }} type="time" value={f.hora} onChange={e => u("hora", e.target.value)} /></div>
+            <div><label style={lbl}>{isEn ? "Birth date *" : "Fecha *"}</label><input style={{ ...inp, colorScheme: "dark" }} type="date" value={f.fecha} onChange={e => u("fecha", e.target.value)} /></div>
+            <div><label style={lbl}>{isEn ? "Birth time *" : "Hora *"}</label><input style={{ ...inp, colorScheme: "dark" }} type="time" value={f.hora} onChange={e => u("hora", e.target.value)} /></div>
           </div>
-          <label style={lbl}>Lugar de nacimiento *</label>
-          <CityInput value={f.lugar} onChange={v => u("lugar", v)} placeholder="Ciudad, País" />
-          <label style={lbl}>Contraseña *</label>
+          <label style={lbl}>{isEn ? "Birth city *" : "Lugar de nacimiento *"}</label>
+          <CityInput value={f.lugar} onChange={v => u("lugar", v)} placeholder={isEn ? "City, Country" : "Ciudad, País"} />
+          <label style={lbl}>{isEn ? "Password *" : "Contraseña *"}</label>
           <Eye value={f.pass} onChange={e => u("pass", e.target.value)} />
           <div style={{ display: "flex", alignItems: "flex-start", gap: ".7rem", marginBottom: "1.2rem" }}>
             <input type="checkbox" id="tyc" checked={f.tyc || false} onChange={e => u("tyc", e.target.checked)}
               style={{ marginTop: ".2rem", accentColor: C.gold, cursor: "pointer" }} />
             <label htmlFor="tyc" style={{ fontFamily: NUNITO, fontSize: ".78rem", color: C.dim, lineHeight: 1.6, cursor: "pointer" }}>
-              Acepto los <span style={{ color: C.gold }}>términos y condiciones</span> de uso de SIMPLE. Esta herramienta es orientativa y no reemplaza el consejo profesional.
+              {isEn
+                ? <>I accept the <span style={{ color: C.gold }}>terms and conditions</span> of SIMPLE. This tool is for guidance only and does not replace professional advice.</>
+                : <>Acepto los <span style={{ color: C.gold }}>términos y condiciones</span> de uso de SIMPLE. Esta herramienta es orientativa y no reemplaza el consejo profesional.</>
+              }
             </label>
           </div>
           <button onClick={ok} disabled={loading || !f.tyc} style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading || !f.tyc ? 0.5 : 1 }}>
-            {loading ? "Calculando tu diseño..." : "Registrarme"}
+            {loading ? (isEn ? "Calculating your design..." : "Calculando tu diseño...") : (isEn ? "Sign up" : "Registrarme")}
           </button>
         </div>
         <div style={{ textAlign: "center", margin: "1.2rem 0", color: C.dim, fontFamily: "monospace", fontSize: ".7rem" }}>
-          ¿Ya tenés cuenta? <button onClick={() => go("login")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".63rem" }}>Ingresá acá</button>
+          {isEn ? "Already have an account? " : "¿Ya tenés cuenta? "}
+          <button onClick={() => go("login")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".63rem" }}>
+            {isEn ? "Sign in here" : "Ingresá acá"}
+          </button>
         </div>
       </div>
     </div>
