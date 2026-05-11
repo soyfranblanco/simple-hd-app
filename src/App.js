@@ -1699,8 +1699,8 @@ INSTRUCCIONES:
                   <div style={{ fontSize: ".75rem", color: AC.dim, marginTop: ".2rem" }}>{u.diseno?.autoridad}</div>
                 </div>
               ))}
-              <div style={{ marginTop: "1rem", padding: "1rem", background: "rgba(184,154,78,.05)", border: "1px solid rgba(184,154,78,.15)", fontSize: ".78rem", color: AC.dim, lineHeight: 1.6 }}>
-                Sesión temporal — esta conversación no se guarda.
+              <div style={{ marginTop: "1rem", padding: "1rem", background: "rgba(184,154,78,.05)", border: "1px solid rgba(184,154,78,.15)", fontSize: ".78rem", color: AC.dim, lineHeight: 1.6, borderRadius: 10 }}>
+                {teamConvId ? "✓ Conversación guardada" : "La conversación se guardará con el primer mensaje."}
               </div>
             </div>
           </div>
@@ -1774,7 +1774,12 @@ INSTRUCCIONES:
                 </div>
               ))}
               <div style={{ borderTop: "1px solid rgba(184,154,78,.15)", marginTop: ".5rem", paddingTop: "1rem" }}>
-                <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".5rem" }}>Mis notas</div>
+                <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".4rem" }}>Empresa</div>
+                <EmpresaEditor usuario={selected} gold={gold} AC={AC} onUpdate={(empresa) => {
+                  setUsuarios(prev => prev.map(u => u.email === selected.email ? { ...u, empresa } : u));
+                  setSelected(prev => ({ ...prev, empresa }));
+                }} />
+                <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".5rem", marginTop: "1rem" }}>Mis notas</div>
                 <textarea value={nota} onChange={e => setNota(e.target.value)}
                   style={{ width: "100%", background: darkMode ? "rgba(255,255,255,.03)" : "rgba(0,0,0,.04)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: AC.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 120, boxSizing: "border-box", marginBottom: ".5rem", display: "block" }}
                   placeholder="Anotá contexto sobre este cliente..." />
