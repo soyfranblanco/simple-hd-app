@@ -320,164 +320,15 @@ function CityInput({ value, onChange, placeholder }) {
   );
 }
 
-function SliderExplicativo({ onClose, lang }) {
-  const [slide, setSlide] = useState(0);
-  const total = 4;
-
-  const slidesES = [
-    {
-      num: "01 / 04",
-      titulo: <>Somos, en esencia, <span style={{ color: C.gold }}>información.</span></>,
-      cuerpo: "Hay información sobre cómo funcionás que siempre estuvo ahí — pero que nunca te enseñaron a leer."
-    },
-    {
-      num: "02 / 04",
-      titulo: <>Tu origen define <span style={{ color: C.gold }}>tu configuración.</span></>,
-      cuerpo: "Dónde y cuándo naciste determina algo único: tu forma de tomar decisiones, de procesar la presión, de relacionarte con otros."
-    },
-    {
-      num: "03 / 04",
-      titulo: <>No es astrología. Es <span style={{ color: C.gold }}>un mapa.</span></>,
-      cuerpo: "El Diseño Humano es el sistema que permite leer esa información. Una cartografía de cómo estás construido — sin creencias, sin interpretaciones."
-    },
-    {
-      num: "04 / 04",
-      titulo: <>Por eso pedimos <span style={{ color: C.gold }}>tus datos.</span></>,
-      cuerpo: "Con tu fecha, hora y lugar de nacimiento generamos tu carta. A partir de ahí, todo lo que te decimos es específico para vos — no una respuesta genérica."
-    }
-  ];
-
-  const slidesEN = [
-    {
-      num: "01 / 04",
-      titulo: <>We are, in essence, <span style={{ color: C.gold }}>information.</span></>,
-      cuerpo: "There is information about how you function that has always been there — but no one ever taught you how to read it."
-    },
-    {
-      num: "02 / 04",
-      titulo: <>Your origin defines <span style={{ color: C.gold }}>your configuration.</span></>,
-      cuerpo: "Where and when you were born determines something unique: how you make decisions, how you process pressure, how you relate to others."
-    },
-    {
-      num: "03 / 04",
-      titulo: <>It's not astrology. It's <span style={{ color: C.gold }}>a map.</span></>,
-      cuerpo: "Human Design is the system that allows us to read that information. A blueprint of how you are built — no beliefs, no interpretations."
-    },
-    {
-      num: "04 / 04",
-      titulo: <>That's why we ask for <span style={{ color: C.gold }}>your data.</span></>,
-      cuerpo: "With your date, time and place of birth we generate your chart. From there, everything we tell you is specific to you — not a generic answer."
-    }
-  ];
-
-  const slides = lang === "en" ? slidesEN : slidesES;
-  const t = lang === "en";
-
-  function siguiente() {
-    if (slide === total - 1) { onClose(); return; }
-    setSlide(s => s + 1);
-  }
-
-  function anterior() {
-    if (slide === 0) return;
-    setSlide(s => s - 1);
-  }
-
-  return (
-    <div style={{
-      position: "fixed", inset: 0,
-      background: "rgba(8,8,8,0.92)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 200, backdropFilter: "blur(6px)",
-      padding: "1rem"
-    }}>
-      <div style={{
-        width: "min(540px, 100%)",
-        background: "#0e0e0e",
-        border: "0.5px solid rgba(184,154,78,0.3)",
-        position: "relative",
-        fontFamily: GEORGIA
-      }}>
-        {/* Línea dorada top */}
-        <div style={{ height: 1, background: "linear-gradient(90deg, transparent, #b89a4e, transparent)" }} />
-
-        {/* Header */}
-        <div style={{ padding: "1.5rem 2rem 1.2rem", borderBottom: "0.5px solid rgba(184,154,78,0.12)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontFamily: "monospace", fontSize: ".52rem", letterSpacing: ".4em", color: C.gold, textTransform: "uppercase" }}>
-            {t ? "Why do we ask for this information?" : "¿Por qué pedimos esta información?"}
-          </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(240,235,224,0.3)", fontSize: "1.2rem", cursor: "pointer", lineHeight: 1 }}>×</button>
-        </div>
-
-        {/* Slide */}
-        <div style={{ padding: "2.5rem 2rem 2rem", minHeight: 220 }}>
-          <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: "rgba(184,154,78,0.5)", marginBottom: "1.2rem", textTransform: "uppercase" }}>
-            {slides[slide].num}
-          </div>
-          <div style={{ fontSize: "clamp(1.3rem, 3vw, 1.75rem)", fontWeight: 300, color: C.txt, lineHeight: 1.3, marginBottom: "1rem", fontStyle: "italic" }}>
-            {slides[slide].titulo}
-          </div>
-          <div style={{ fontSize: ".95rem", color: "rgba(240,235,224,0.55)", lineHeight: 1.75, fontWeight: 300 }}>
-            {slides[slide].cuerpo}
-          </div>
-        </div>
-
-        {/* Barra de progreso */}
-        <div style={{ height: 1, background: "rgba(184,154,78,0.1)", margin: "0 2rem" }}>
-          <div style={{ height: "100%", background: C.gold, width: `${(slide + 1) / total * 100}%`, transition: "width .3s ease" }} />
-        </div>
-
-        {/* Footer */}
-        <div style={{ padding: "1.2rem 2rem 1.8rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", gap: 6 }}>
-            {Array.from({ length: total }).map((_, i) => (
-              <div key={i} onClick={() => setSlide(i)} style={{
-                width: 5, height: 5, borderRadius: "50%",
-                background: i === slide ? C.gold : "rgba(184,154,78,0.2)",
-                cursor: "pointer", transition: "background .2s"
-              }} />
-            ))}
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={anterior} disabled={slide === 0} style={{
-              background: "transparent",
-              border: "0.5px solid rgba(184,154,78,0.2)",
-              color: "rgba(240,235,224,0.4)",
-              fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".2em",
-              padding: ".6em 1.2em", cursor: slide === 0 ? "default" : "pointer",
-              textTransform: "uppercase", opacity: slide === 0 ? 0.2 : 1,
-              transition: "all .2s"
-            }}>{t ? "Previous" : "Anterior"}</button>
-            <button onClick={siguiente} style={{
-              background: C.gold, border: "none", color: C.bg,
-              fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".2em",
-              padding: ".6em 1.4em", cursor: "pointer",
-              textTransform: "uppercase"
-            }}>
-              {slide === total - 1 ? (t ? "Got it" : "Entendido") : (t ? "Next" : "Siguiente")}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function Register({ go, lang, setDynamicUser }) {
   const [f, setF] = useState({ nom: "", ape: "", email: "", tel: "", fecha: "", hora: "", lugar: "", pass: "" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showSlider, setShowSlider] = useState(false);
-  const isEn = lang === "en";
-  React.useEffect(() => {
-    const timer = setTimeout(() => setShowSlider(true), 4000);
-    return () => clearTimeout(timer);
-  }, []);
   const u = (k, v) => setF(p => ({ ...p, [k]: v }));
 
   async function ok() {
     if (!f.nom || !f.ape || !f.email || !f.fecha || !f.hora || !f.lugar || !f.pass) {
-      setErr(isEn ? "Please fill in all required fields." : "Completá todos los campos obligatorios."); return;
+      setErr("Completá todos los campos obligatorios."); return;
     }
     setLoading(true);
     setErr("");
@@ -526,48 +377,41 @@ function Register({ go, lang, setDynamicUser }) {
   }
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", padding: "2.5rem 2rem", fontFamily: "Georgia,serif", color: C.txt, overflowY: "auto" }}>
-      {showSlider && <SliderExplicativo onClose={() => setShowSlider(false)} lang={lang} />}
       <div style={logo}>SIMPLE</div>
       <div style={{ width: "100%", maxWidth: 420 }}>
-        <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem" }}>{isEn ? "Create account" : "Crear cuenta"}</div>
-        <div style={{ color: C.dim, textAlign: "center", marginBottom: "1.5rem", fontSize: ".9rem", lineHeight: 1.6 }}>{isEn ? "Enter your details to calculate your design." : "Ingresá tus datos para calcular tu diseño."}</div>
+        <div style={{ fontSize: "1.5rem", fontWeight: 300, textAlign: "center", marginBottom: ".4rem" }}>Crear cuenta</div>
+        <div style={{ color: C.dim, textAlign: "center", marginBottom: "1.5rem", fontSize: ".9rem", lineHeight: 1.6 }}>Ingresá tus datos para calcular tu diseño.</div>
         <div style={{ border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)", borderRadius: 16 }}>
           {err && <div style={{ color: "#c06040", fontFamily: "monospace", fontSize: ".63rem", marginBottom: ".8rem", textAlign: "center" }}>{err}</div>}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <div><label style={lbl}>{isEn ? "First name *" : "Nombre *"}</label><input style={inp} placeholder={isEn ? "Your name" : "Tu nombre"} value={f.nom} onChange={e => u("nom", e.target.value)} /></div>
-            <div><label style={lbl}>{isEn ? "Last name *" : "Apellido *"}</label><input style={inp} placeholder={isEn ? "Your last name" : "Tu apellido"} value={f.ape} onChange={e => u("ape", e.target.value)} /></div>
+            <div><label style={lbl}>Nombre *</label><input style={inp} placeholder="Tu nombre" value={f.nom} onChange={e => u("nom", e.target.value)} /></div>
+            <div><label style={lbl}>Apellido *</label><input style={inp} placeholder="Tu apellido" value={f.ape} onChange={e => u("ape", e.target.value)} /></div>
           </div>
           <label style={lbl}>Email *</label>
-          <input style={inp} type="email" placeholder="you@email.com" value={f.email} onChange={e => u("email", e.target.value)} />
-          <label style={lbl}>{isEn ? "Phone" : "Teléfono"}</label>
+          <input style={inp} type="email" placeholder="tu@email.com" value={f.email} onChange={e => u("email", e.target.value)} />
+          <label style={lbl}>Teléfono</label>
           <input style={inp} type="tel" placeholder="+54 11 0000 0000" value={f.tel} onChange={e => u("tel", e.target.value)} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <div><label style={lbl}>{isEn ? "Birth date *" : "Fecha *"}</label><input style={{ ...inp, colorScheme: "dark" }} type="date" value={f.fecha} onChange={e => u("fecha", e.target.value)} /></div>
-            <div><label style={lbl}>{isEn ? "Birth time *" : "Hora *"}</label><input style={{ ...inp, colorScheme: "dark" }} type="time" value={f.hora} onChange={e => u("hora", e.target.value)} /></div>
+            <div><label style={lbl}>Fecha *</label><input style={{ ...inp, colorScheme: "dark" }} type="date" value={f.fecha} onChange={e => u("fecha", e.target.value)} /></div>
+            <div><label style={lbl}>Hora *</label><input style={{ ...inp, colorScheme: "dark" }} type="time" value={f.hora} onChange={e => u("hora", e.target.value)} /></div>
           </div>
-          <label style={lbl}>{isEn ? "Birth city *" : "Lugar de nacimiento *"}</label>
-          <CityInput value={f.lugar} onChange={v => u("lugar", v)} placeholder={isEn ? "City, Country" : "Ciudad, País"} />
-          <label style={lbl}>{isEn ? "Password *" : "Contraseña *"}</label>
+          <label style={lbl}>Lugar de nacimiento *</label>
+          <CityInput value={f.lugar} onChange={v => u("lugar", v)} placeholder="Ciudad, País" />
+          <label style={lbl}>Contraseña *</label>
           <Eye value={f.pass} onChange={e => u("pass", e.target.value)} />
           <div style={{ display: "flex", alignItems: "flex-start", gap: ".7rem", marginBottom: "1.2rem" }}>
             <input type="checkbox" id="tyc" checked={f.tyc || false} onChange={e => u("tyc", e.target.checked)}
               style={{ marginTop: ".2rem", accentColor: C.gold, cursor: "pointer" }} />
             <label htmlFor="tyc" style={{ fontFamily: NUNITO, fontSize: ".78rem", color: C.dim, lineHeight: 1.6, cursor: "pointer" }}>
-              {isEn
-                ? <>I accept the <span style={{ color: C.gold }}>terms and conditions</span> of SIMPLE. This tool is for guidance only and does not replace professional advice.</>
-                : <>Acepto los <span style={{ color: C.gold }}>términos y condiciones</span> de uso de SIMPLE. Esta herramienta es orientativa y no reemplaza el consejo profesional.</>
-              }
+              Acepto los <span style={{ color: C.gold }}>términos y condiciones</span> de uso de SIMPLE. Esta herramienta es orientativa y no reemplaza el consejo profesional.
             </label>
           </div>
           <button onClick={ok} disabled={loading || !f.tyc} style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading || !f.tyc ? 0.5 : 1 }}>
-            {loading ? (isEn ? "Calculating your design..." : "Calculando tu diseño...") : (isEn ? "Sign up" : "Registrarme")}
+            {loading ? "Calculando tu diseño..." : "Registrarme"}
           </button>
         </div>
         <div style={{ textAlign: "center", margin: "1.2rem 0", color: C.dim, fontFamily: "monospace", fontSize: ".7rem" }}>
-          {isEn ? "Already have an account? " : "¿Ya tenés cuenta? "}
-          <button onClick={() => go("login")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".63rem" }}>
-            {isEn ? "Sign in here" : "Ingresá acá"}
-          </button>
+          ¿Ya tenés cuenta? <button onClick={() => go("login")} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".63rem" }}>Ingresá acá</button>
         </div>
       </div>
     </div>
@@ -1333,6 +1177,42 @@ Respondé SOLO con un JSON válido sin markdown:
 const ADMIN_EMAIL = "soyfranblanco@gmail.com";
 const ADMIN_PASS = "soyadmin";
 
+function EmpresaEditor({ usuario, gold, AC, onUpdate }) {
+  const [editando, setEditando] = React.useState(false);
+  const [valor, setValor] = React.useState(usuario?.empresa || "");
+  const SUPABASE_URL = "https://ebczaoptweskqzuzrmls.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwMjE5NjgsImV4cCI6MjA1ODU5Nzk2OH0.O3bMDrCYkpijv74GnLPdekJRMCFzqXpAbEkdMSvGrR0";
+
+  async function guardar() {
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(usuario.email)}`, {
+        method: "PATCH",
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
+        body: JSON.stringify({ empresa: valor })
+      });
+      onUpdate(valor);
+      setEditando(false);
+    } catch {}
+  }
+
+  if (!editando) return (
+    <div onClick={() => setEditando(true)} style={{ cursor: "pointer", fontSize: ".8rem", color: valor ? AC.txt : AC.dim, padding: ".3rem 0", borderBottom: "1px solid rgba(184,154,78,.15)", minHeight: "1.8rem" }}>
+      {valor || <span style={{ fontStyle: "italic", fontSize: ".75rem" }}>Agregar empresa...</span>}
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", gap: ".4rem" }}>
+      <input autoFocus value={valor} onChange={e => setValor(e.target.value)}
+        onKeyDown={e => { if (e.key === "Enter") guardar(); if (e.key === "Escape") setEditando(false); }}
+        style={{ flex: 1, background: "transparent", border: "none", borderBottom: `1px solid ${gold}`, color: AC.txt, fontFamily: "inherit", fontSize: ".8rem", padding: ".3rem 0", outline: "none" }}
+        placeholder="Nombre de empresa..." />
+      <button onClick={guardar} style={{ background: "none", border: "none", color: gold, cursor: "pointer", fontSize: ".7rem", fontFamily: "monospace" }}>✓</button>
+      <button onClick={() => setEditando(false)} style={{ background: "none", border: "none", color: AC.dim, cursor: "pointer", fontSize: ".8rem" }}>×</button>
+    </div>
+  );
+}
+
 function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSeleccion, seleccionar, setView, setTeamMsgs }) {
   const [busqueda, setBusqueda] = React.useState("");
   const filtrados = busqueda.trim()
@@ -1341,7 +1221,8 @@ function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSelecc
         return (
           (u.nombre + " " + u.apellido).toLowerCase().includes(q) ||
           u.email.toLowerCase().includes(q) ||
-          (u.diseno?.tipo || "").toLowerCase().includes(q)
+          (u.diseno?.tipo || "").toLowerCase().includes(q) ||
+          (u.empresa || "").toLowerCase().includes(q)
         );
       })
     : usuarios;
@@ -1368,7 +1249,7 @@ function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSelecc
           {filtrados.length} USUARIO{filtrados.length !== 1 ? "S" : ""}{busqueda ? ` · "${busqueda}"` : ""}
         </div>
         {seleccionados.length >= 2 && (
-          <button onClick={() => { setTeamMsgs([]); setView("equipo"); }}
+          <button onClick={() => { setView("equipo"); setTimeout(() => cargarConvEquipo(), 50); }}
             style={{ background: gold, color: AC.bg, border: "none", borderRadius: 20, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5em 1.2em", cursor: "pointer", textTransform: "uppercase" }}>
             Analizar equipo ({seleccionados.length})
           </button>
@@ -1393,7 +1274,10 @@ function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSelecc
                 onMouseEnter={e => e.currentTarget.style.borderColor = gold}
                 onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(184,154,78,.15)"}>
                 <div>
-                  <div style={{ fontSize: ".95rem", fontWeight: 600, color: AC.txt, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap", marginBottom: ".2rem" }}>
+                    <div style={{ fontSize: ".95rem", fontWeight: 600, color: AC.txt }}>{u.nombre} {u.apellido}</div>
+                    {u.empresa && <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".15em", color: AC.bg, background: gold, padding: ".2em .6em", borderRadius: 20, textTransform: "uppercase" }}>{u.empresa}</div>}
+                  </div>
                   <div style={{ fontSize: ".78rem", color: AC.dim }}>{u.email}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
@@ -1464,7 +1348,7 @@ function AdminPanel() {
   React.useEffect(() => {
     if (!authed) return;
     async function cargar() {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?select=email,nombre,apellido,diseno,created_at&order=created_at.desc`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?select=email,nombre,apellido,diseno,empresa,created_at&order=created_at.desc`, {
         headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
       });
       const data = await r.json();
@@ -1590,6 +1474,7 @@ function AdminPanel() {
 
   const [seleccionados, setSeleccionados] = useState([]);
   const [teamMsgs, setTeamMsgs] = useState([]);
+  const [teamConvId, setTeamConvId] = useState(null);
   const [teamInput, setTeamInput] = useState("");
   const [teamLoading, setTeamLoading] = useState(false);
   const teamEndRef = React.useRef(null);
@@ -1605,8 +1490,52 @@ function AdminPanel() {
     setSeleccionados(prev =>
       prev.find(s => s.email === u.email)
         ? prev.filter(s => s.email !== u.email)
-        : prev.length < 4 ? [...prev, u] : prev
+        : prev.length < 8 ? [...prev, u] : prev
     );
+  }
+
+  function teamKey() {
+    return "equipo::" + [...seleccionados].map(u => u.email).sort().join("|");
+  }
+
+  async function cargarConvEquipo() {
+    const key = teamKey();
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/conversaciones?usuario_email=eq.${encodeURIComponent(key)}&order=updated_at.desc&limit=1`, {
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+      });
+      const data = await r.json();
+      if (Array.isArray(data) && data[0]?.mensajes) {
+        setTeamMsgs(data[0].mensajes);
+        setTeamConvId(data[0].id);
+      } else {
+        setTeamMsgs([]);
+        setTeamConvId(null);
+      }
+    } catch { setTeamMsgs([]); setTeamConvId(null); }
+  }
+
+  async function guardarConvEquipo(mensajes, currentId) {
+    const key = teamKey();
+    try {
+      if (currentId) {
+        await fetch(`${SUPABASE_URL}/rest/v1/conversaciones?id=eq.${currentId}`, {
+          method: "PATCH",
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
+          body: JSON.stringify({ mensajes, updated_at: new Date().toISOString() })
+        });
+        return currentId;
+      } else {
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/conversaciones`, {
+          method: "POST",
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" },
+          body: JSON.stringify({ usuario_email: key, modo: "equipo", mensajes })
+        });
+        const data = await r.json();
+        if (Array.isArray(data) && data[0]?.id) return data[0].id;
+      }
+    } catch {}
+    return currentId;
   }
 
   async function sendTeam() {
@@ -1638,7 +1567,10 @@ INSTRUCCIONES:
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, system: sys, messages: next })
       });
       const d = await r.json();
-      setTeamMsgs([...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }]);
+      const finalTeamMsgs = [...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }];
+      setTeamMsgs(finalTeamMsgs);
+      const newTeamId = await guardarConvEquipo(finalTeamMsgs, teamConvId);
+      if (newTeamId && !teamConvId) setTeamConvId(newTeamId);
     } catch {
       setTeamMsgs([...next, { role: "assistant", content: "Error de conexión." }]);
     }
@@ -1707,7 +1639,7 @@ INSTRUCCIONES:
               {usuarios.length} USUARIO{usuarios.length !== 1 ? "S" : ""}
             </div>
             {seleccionados.length >= 2 && (
-              <button onClick={() => { setTeamMsgs([]); setView("equipo"); }}
+              <button onClick={() => { setView("equipo"); setTimeout(() => cargarConvEquipo(), 50); }}
                 style={{ background: gold, color: AC.bg, border: "none", borderRadius: 20, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5em 1.2em", cursor: "pointer", textTransform: "uppercase" }}>
                 Analizar equipo ({seleccionados.length})
               </button>
@@ -1730,7 +1662,10 @@ INSTRUCCIONES:
                     onMouseEnter={e => e.currentTarget.style.borderColor = gold}
                     onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(184,154,78,.15)"}>
                     <div>
-                      <div style={{ fontSize: ".95rem", fontWeight: 600, color: AC.txt, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap", marginBottom: ".2rem" }}>
+                        <div style={{ fontSize: ".95rem", fontWeight: 600, color: AC.txt }}>{u.nombre} {u.apellido}</div>
+                        {u.empresa && <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".15em", color: AC.bg, background: gold, padding: ".2em .6em", borderRadius: 20, textTransform: "uppercase" }}>{u.empresa}</div>}
+                      </div>
                       <div style={{ fontSize: ".78rem", color: AC.dim }}>{u.email}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
@@ -1756,7 +1691,10 @@ INSTRUCCIONES:
               </div>
               {seleccionados.map((u, i) => (
                 <div key={i} style={{ marginBottom: "1.2rem", paddingBottom: "1.2rem", borderBottom: "1px solid rgba(184,154,78,.1)" }}>
-                  <div style={{ fontSize: ".9rem", fontWeight: 600, marginBottom: ".2rem", color: AC.txt }}>{u.nombre} {u.apellido}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap", marginBottom: ".2rem" }}>
+                    <div style={{ fontSize: ".9rem", fontWeight: 600, color: AC.txt }}>{u.nombre} {u.apellido}</div>
+                    {u.empresa && <div style={{ fontFamily: "monospace", fontSize: ".4rem", letterSpacing: ".15em", color: AC.bg, background: gold, padding: ".15em .5em", borderRadius: 20, textTransform: "uppercase" }}>{u.empresa}</div>}
+                  </div>
                   <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: gold }}>{u.diseno?.tipo} · {u.diseno?.perfil}</div>
                   <div style={{ fontSize: ".75rem", color: AC.dim, marginTop: ".2rem" }}>{u.diseno?.autoridad}</div>
                 </div>
