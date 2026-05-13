@@ -1185,14 +1185,19 @@ function EmpresaEditor({ usuario, gold, AC, onUpdate }) {
 
   async function guardar() {
     try {
-      await fetch(`${SUPABASE_URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(usuario.email)}`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(usuario.email)}`, {
         method: "PATCH",
-        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" },
         body: JSON.stringify({ empresa: valor })
       });
-      onUpdate(valor);
-      setEditando(false);
-    } catch {}
+      if (res.ok) {
+        onUpdate(valor);
+        setEditando(false);
+      } else {
+        const err = await res.text();
+        console.error("Error guardando empresa:", err);
+      }
+    } catch(e) { console.error("Error empresa:", e); }
   }
 
   if (!editando) return (
@@ -1348,6 +1353,7 @@ function AdminPanel() {
   React.useEffect(() => {
     if (!authed) return;
     async function cargar() {
+      console.log("Cargando usuarios con campo empresa...");
       const r = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?select=email,nombre,apellido,diseno,empresa,created_at&order=created_at.desc`, {
         headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
       });
@@ -1534,7 +1540,7 @@ function AdminPanel() {
         const data = await r.json();
         if (Array.isArray(data) && data[0]?.id) return data[0].id;
       }
-    } catch {}
+    } catch(e) { console.error("Error guardando conv equipo:", e); }
     return currentId;
   }
 
@@ -1624,7 +1630,7 @@ INSTRUCCIONES:
             )}
           </button>
           {(view === "chat" || view === "equipo") && (
-            <button onClick={() => { setView("lista"); setSeleccionados([]); setTeamMsgs([]); }} style={{ color: gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
+            <button onClick={() => { setView("lista"); setSeleccionados([]); setTeamMsgs([]); setTeamConvId(null); }} style={{ color: gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
           )}
         </div>
       </div>
