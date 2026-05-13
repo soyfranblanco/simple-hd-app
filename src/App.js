@@ -1180,15 +1180,12 @@ const ADMIN_PASS = "soyadmin";
 function EmpresaEditor({ usuario, gold, AC, onUpdate }) {
   const [editando, setEditando] = React.useState(false);
   const [valor, setValor] = React.useState(usuario?.empresa || "");
-  const SUPABASE_URL = "https://ebczaoptweskqzuzrmls.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMwMjE5NjgsImV4cCI6MjA1ODU5Nzk2OH0.O3bMDrCYkpijv74GnLPdekJRMCFzqXpAbEkdMSvGrR0";
-
   async function guardar() {
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(usuario.email)}`, {
-        method: "PATCH",
-        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" },
-        body: JSON.stringify({ empresa: valor })
+      const res = await fetch("/api/update-usuario", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: usuario.email, fields: { empresa: valor } })
       });
       if (res.ok) {
         onUpdate(valor);
