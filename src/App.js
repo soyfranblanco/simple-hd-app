@@ -1522,17 +1522,17 @@ function AdminPanel() {
     const key = teamKey();
     try {
       if (currentId) {
-        await fetch(`${SUPABASE_URL}/rest/v1/conversaciones?id=eq.${currentId}`, {
-          method: "PATCH",
-          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" },
-          body: JSON.stringify({ mensajes, updated_at: new Date().toISOString() })
+        await fetch("/api/update-usuario", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update-conversacion", id: currentId, mensajes })
         });
         return currentId;
       } else {
-        const r = await fetch(`${SUPABASE_URL}/rest/v1/conversaciones`, {
+        const r = await fetch("/api/update-usuario", {
           method: "POST",
-          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" },
-          body: JSON.stringify({ usuario_email: key, modo: "equipo", mensajes })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "insert-conversacion", email: key, modo: "equipo", mensajes })
         });
         const data = await r.json();
         if (Array.isArray(data) && data[0]?.id) return data[0].id;
