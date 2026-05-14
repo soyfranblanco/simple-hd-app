@@ -1215,7 +1215,7 @@ function EmpresaEditor({ usuario, gold, AC, onUpdate }) {
   );
 }
 
-function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSeleccion, seleccionar, setView, setTeamMsgs }) {
+function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSeleccion, seleccionar, setView, setTeamMsgs, cargarConvEquipo }) {
   const [busqueda, setBusqueda] = React.useState("");
   const filtrados = busqueda.trim()
     ? usuarios.filter(u => {
@@ -1633,7 +1633,7 @@ INSTRUCCIONES:
       </div>
 
       {view === "lista" && (
-        <AdminListaConBusqueda usuarios={usuarios} gold={gold} AC={AC} seleccionados={seleccionados} toggleSeleccion={toggleSeleccion} seleccionar={seleccionar} setView={setView} setTeamMsgs={setTeamMsgs} />
+        <AdminListaConBusqueda usuarios={usuarios} gold={gold} AC={AC} seleccionados={seleccionados} toggleSeleccion={toggleSeleccion} seleccionar={seleccionar} setView={setView} setTeamMsgs={setTeamMsgs} cargarConvEquipo={cargarConvEquipo} />
       )}
       {view === "__REMOVED__" && (
         <div style={{ maxWidth: 800, margin: "2rem auto", padding: "0 2rem" }}>
