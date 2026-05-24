@@ -815,9 +815,19 @@ For vague questions, ask ONE clarifying question first.`;
   const contextoDesafio = desafioActual ? `\nESTÁS TRABAJANDO ESPECÍFICAMENTE EL DESAFÍO: "${desafioActual.titulo}" — ${desafioActual.descripcion}. Enfocá todas tus respuestas en ayudar a la persona a avanzar en este desafío concreto.` : "";
   const contextoPDF = pdfTexto ? `\n\nDOCUMENTO SUBIDO POR EL USUARIO ("${pdfNombre}"):\n${pdfTexto.slice(0, 8000)}` : "";
   const documentosActivos = documentos.filter(d => d.activo);
+  const hoy = new Date().toLocaleDateString("es-AR", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   const contextoDocumentos = documentosActivos.length > 0
-    ? "\n\nDOCUMENTOS PERSONALES DEL USUARIO (usá esta información para enriquecer tus respuestas):\n" +
-      documentosActivos.map(d => `--- ${d.nombre} ---\n${d.contenido.slice(0, 4000)}`).join("\n\n")
+    ? `\n\nFECHA ACTUAL: ${hoy}
+
+DOCUMENTOS PERSONALES DEL USUARIO:
+${documentosActivos.map(d => `--- ${d.nombre} ---\n${d.contenido.slice(0, 4000)}`).join("\n\n")}
+
+INSTRUCCIÓN CRÍTICA SOBRE LOS DOCUMENTOS:
+Tenés acceso a los documentos personales del usuario (pueden incluir revolución solar, análisis astrológicos, reportes de otras herramientas, etc.).
+- Sabés la fecha de hoy. Siempre revisá si alguno de estos documentos contiene información relevante para el período actual (aproximadamente ±10 días desde hoy).
+- Si el usuario está hablando de un tema (decisiones, contratos, relaciones, energía, trabajo, etc.) y en sus documentos hay información sobre ese período que sea pertinente, integrala en tu respuesta mencionando brevemente de qué documento proviene — por ejemplo "según tu revolución solar..." o "en el análisis que tenés cargado...". Que sea natural, no un disclaimer, sino parte orgánica del análisis.
+- Si la información del período indica energía favorable para lo que está evaluando, mencionalo. Si indica lo contrario o sugiere cautela, también mencionalo — con la misma franqueza con que abordás cualquier aspecto del diseño.
+- No fuerces la conexión si no es relevante. Solo si aporta valor real a lo que se está conversando.`
     : "";
   const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user) + contextoBase + contextoDesafio + contextoPDF + contextoDocumentos;
 
