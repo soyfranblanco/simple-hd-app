@@ -624,6 +624,12 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
   const [bitacora, setBitacora] = useState("");
   const [bitacoraId, setBitacoraId] = useState(null);
   const [savingBitacora, setSavingBitacora] = useState(false);
+  const [documentos, setDocumentos] = useState([]);
+  const [docNombre, setDocNombre] = useState("");
+  const [docTexto, setDocTexto] = useState("");
+  const [docLoading, setDocLoading] = useState(false);
+  const [docModo, setDocModo] = useState("pdf"); // "pdf" | "texto"
+  const docFileRef = React.useRef(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(null);
@@ -663,7 +669,79 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
     }
     cargarConversaciones();
     cargarBitacora();
+    cargarDocumentos();
   }, [userEmail]);
+
+  async function cargarDocumentos() {
+    try {
+      const data = await dbFetch(`documentos?usuario_email=eq.${encodeURIComponent(userEmail)}&order=created_at.asc`);
+      if (Array.isArray(data)) setDocumentos(data);
+    } catch {}
+  }
+
+  async function subirDocumento() {
+    if (!docNombre.trim() || !docTexto.trim()) return;
+    setDocLoading(true);
+    try {
+      const result = await dbFetch("documentos", {
+        method: "POST",
+        body: JSON.stringify({ usuario_email: userEmail, nombre: docNombre.trim(), contenido: docTexto.trim(), activo: true })
+      });
+      if (Array.isArray(result) && result[0]) {
+        setDocumentos(prev => [...prev, result[0]]);
+        setDocNombre("");
+        setDocTexto("");
+      }
+    } catch {}
+    setDocLoading(false);
+  }
+
+  async function toggleDocumento(id, activo) {
+    try {
+      await dbFetch(`documentos?id=eq.${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ activo: !activo })
+      });
+      setDocumentos(prev => prev.map(d => d.id === id ? { ...d, activo: !activo } : d));
+    } catch {}
+  }
+
+  async function eliminarDocumento(id) {
+    try {
+      await dbFetch(`documentos?id=eq.${id}`, { method: "DELETE" });
+      setDocumentos(prev => prev.filter(d => d.id !== id));
+    } catch {}
+  }
+
+  async function handleDocPdf(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert("El PDF supera los 5MB."); return; }
+    setDocLoading(true);
+    if (!docNombre.trim()) setDocNombre(file.name.replace(".pdf", ""));
+    try {
+      const base64 = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result.split(",")[1]);
+        r.onerror = rej;
+        r.readAsDataURL(file);
+      });
+      const resp = await fetch("/api/chat", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514", max_tokens: 4000,
+          messages: [{ role: "user", content: [
+            { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } },
+            { type: "text", text: "Extraé todo el texto de este documento. Solo el texto, sin comentarios." }
+          ]}]
+        })
+      });
+      const data = await resp.json();
+      setDocTexto(data.content?.[0]?.text || "");
+    } catch { alert("No se pudo leer el PDF."); }
+    setDocLoading(false);
+    e.target.value = "";
+  }
 
   // Guardar conversación en Supabase después de cada respuesta
   async function guardarConversacion(mensajes) {
@@ -736,7 +814,12 @@ For vague questions, ask ONE clarifying question first.`;
   const contextoBase = problema ? `\nPROBLEMA ACTIVO: "${problema.raiz}". Área: ${problema.area}.` : "";
   const contextoDesafio = desafioActual ? `\nESTÁS TRABAJANDO ESPECÍFICAMENTE EL DESAFÍO: "${desafioActual.titulo}" — ${desafioActual.descripcion}. Enfocá todas tus respuestas en ayudar a la persona a avanzar en este desafío concreto.` : "";
   const contextoPDF = pdfTexto ? `\n\nDOCUMENTO SUBIDO POR EL USUARIO ("${pdfNombre}"):\n${pdfTexto.slice(0, 8000)}` : "";
-  const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user) + contextoBase + contextoDesafio + contextoPDF;
+  const documentosActivos = documentos.filter(d => d.activo);
+  const contextoDocumentos = documentosActivos.length > 0
+    ? "\n\nDOCUMENTOS PERSONALES DEL USUARIO (usá esta información para enriquecer tus respuestas):\n" +
+      documentosActivos.map(d => `--- ${d.nombre} ---\n${d.contenido.slice(0, 4000)}`).join("\n\n")
+    : "";
+  const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user) + contextoBase + contextoDesafio + contextoPDF + contextoDocumentos;
 
   const lastAssistantRef = React.useRef(null);
   const chatContainerRef = React.useRef(null);
@@ -892,7 +975,8 @@ For vague questions, ask ONE clarifying question first.`;
         {[
           ["mi-diseno", lang === "en" ? "My Design" : "Mi diseño"],
           ["inspiracion", lang === "en" ? "Inspiration" : "Inspiración"],
-          ["como-funciona", lang === "en" ? "How it works" : "Cómo funciona"]
+          ["como-funciona", lang === "en" ? "How it works" : "Cómo funciona"],
+          ["documentos", lang === "en" ? "My documents" : "Mis documentos"]
         ].map(([id, label]) => (
           <button key={id} className={`tab-btn${tab === id ? " active" : ""}`}
             onClick={() => setTab(tab === id ? null : id)}>
@@ -956,6 +1040,69 @@ For vague questions, ask ONE clarifying question first.`;
             <p>No da respuestas genéricas. Todo lo que te diga está basado en tu diseño específico — tu tipo, autoridad, perfil y centros.</p>
             <p style={{ marginBottom: 0 }}>Cuanto más contexto le des sobre tu situación concreta, mejor va a ser la respuesta. No hace falta que sepas nada de Diseño Humano para usarlo.</p>
           </>}
+        </div>
+      )}
+      {tab === "documentos" && (
+        <div style={{ padding: "1.2rem 2rem", borderBottom: "1px solid rgba(184,154,78,.1)", background: darkModeUser ? "rgba(255,255,255,.02)" : "rgba(0,0,0,.03)", display: "flex", flexDirection: "column", gap: "1rem", maxHeight: "55vh", overflowY: "auto" }}>
+          {/* Lista de documentos */}
+          {documentos.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: ".5rem" }}>
+              <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".3rem" }}>
+                {lang === "en" ? "Your documents" : "Tus documentos"} ({documentosActivos.length} {lang === "en" ? "active" : "activos"})
+              </div>
+              {documentos.map(d => (
+                <div key={d.id} style={{ display: "flex", alignItems: "center", gap: ".6rem", padding: ".6rem .8rem", border: `1px solid ${d.activo ? "rgba(184,154,78,.3)" : "rgba(184,154,78,.1)"}`, borderRadius: 8, background: d.activo ? "rgba(184,154,78,.05)" : "transparent" }}>
+                  <button onClick={() => toggleDocumento(d.id, d.activo)}
+                    style={{ width: 18, height: 18, borderRadius: 4, border: `1px solid ${d.activo ? C.gold : "rgba(184,154,78,.3)"}`, background: d.activo ? C.gold : "transparent", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".6rem", color: d.activo ? C.bg : C.dim }}>
+                    {d.activo ? "✓" : ""}
+                  </button>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: ".82rem", color: d.activo ? C.txt : C.dim, fontFamily: NUNITO, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.nombre}</div>
+                    <div style={{ fontSize: ".68rem", color: C.dim, fontFamily: "monospace" }}>{Math.round(d.contenido.length / 4)} {lang === "en" ? "words approx." : "palabras aprox."}</div>
+                  </div>
+                  <button onClick={() => eliminarDocumento(d.id)}
+                    style={{ background: "none", border: "none", color: C.dim, cursor: "pointer", fontSize: ".9rem", flexShrink: 0 }}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Subir nuevo */}
+          <div style={{ borderTop: documentos.length > 0 ? "1px solid rgba(184,154,78,.1)" : "none", paddingTop: documentos.length > 0 ? "1rem" : 0 }}>
+            <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".6rem" }}>
+              {lang === "en" ? "Add document" : "Agregar documento"}
+            </div>
+            {/* Modo PDF / Texto */}
+            <div style={{ display: "flex", gap: ".4rem", marginBottom: ".7rem" }}>
+              {["pdf", "texto"].map(m => (
+                <button key={m} onClick={() => setDocModo(m)}
+                  style={{ background: docModo === m ? "rgba(184,154,78,.15)" : "transparent", border: `1px solid ${docModo === m ? C.gold : "rgba(184,154,78,.2)"}`, borderRadius: 20, color: docModo === m ? C.gold : C.dim, fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".15em", padding: ".3em .8em", cursor: "pointer", textTransform: "uppercase" }}>
+                  {m === "pdf" ? "PDF" : (lang === "en" ? "Text" : "Texto")}
+                </button>
+              ))}
+            </div>
+            <input value={docNombre} onChange={e => setDocNombre(e.target.value)}
+              placeholder={lang === "en" ? "Document name (e.g. Solar Return 2025)" : "Nombre del documento (ej: Revolución Solar 2025)"}
+              style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.2)", color: C.txt, fontFamily: NUNITO, fontSize: ".82rem", padding: ".4rem 0", outline: "none", marginBottom: ".7rem", boxSizing: "border-box" }} />
+            {docModo === "pdf" ? (
+              <div>
+                <input ref={docFileRef} type="file" accept=".pdf" onChange={handleDocPdf} style={{ display: "none" }} />
+                <button onClick={() => docFileRef.current?.click()} disabled={docLoading}
+                  style={{ width: "100%", border: "2px dashed rgba(184,154,78,.25)", borderRadius: 8, padding: ".8rem", background: "transparent", color: C.dim, fontFamily: NUNITO, fontSize: ".8rem", cursor: docLoading ? "wait" : "pointer", textAlign: "center" }}>
+                  {docLoading ? (lang === "en" ? "Reading PDF..." : "Leyendo PDF...") : (docTexto ? `✓ ${lang === "en" ? "PDF read" : "PDF leído"} — ${lang === "en" ? "click Save" : "hacé clic en Guardar"}` : (lang === "en" ? "Click to select PDF" : "Hacé clic para seleccionar PDF"))}
+                </button>
+              </div>
+            ) : (
+              <textarea value={docTexto} onChange={e => setDocTexto(e.target.value)}
+                placeholder={lang === "en" ? "Paste your document content here..." : "Pegá el contenido de tu documento acá..."}
+                style={{ width: "100%", background: "transparent", border: "1px solid rgba(184,154,78,.2)", borderRadius: 8, color: C.txt, fontFamily: NUNITO, fontSize: ".82rem", padding: ".6rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 100, boxSizing: "border-box" }} />
+            )}
+            {docTexto && (
+              <button onClick={subirDocumento} disabled={docLoading || !docNombre.trim()}
+                style={{ marginTop: ".6rem", background: C.gold, color: C.bg, border: "none", borderRadius: 20, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".6em 1.5em", cursor: docLoading || !docNombre.trim() ? "not-allowed" : "pointer", textTransform: "uppercase", opacity: docLoading || !docNombre.trim() ? 0.5 : 1 }}>
+                {lang === "en" ? "Save document" : "Guardar documento"}
+              </button>
+            )}
+          </div>
         </div>
       )}
       {tab === "bitacora" && (
