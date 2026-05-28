@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 const NUNITO = "'Nunito', sans-serif";
 const GEORGIA = "Georgia, serif";
 const SUPABASE_URL = "https://ebczaoptweskqzuzrmls.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViY3phb3B0d2Vza3F6dXpybWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0OTMxODEsImV4cCI6MjA5MTA2OTE4MX0.Q5wqENM29xaLdVdoG8Gx6Pl49WZSQIGfe2704fa-vNc";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const SYSTEM_PROMPT = `Sos un consultor especializado en el método SIMPLE de Diseño Humano, con 15 años de experiencia asesorando a empresarios y directivos. Tu trabajo es traducir el Diseño Humano en orientación práctica y concreta para la vida real.
 
@@ -321,7 +323,7 @@ function CityInput({ value, onChange, placeholder }) {
 }
 
 function Register({ go, lang, setDynamicUser }) {
-  const [f, setF] = useState({ nom: "", ape: "", email: "", tel: "", fecha: "", hora: "", lugar: "", pass: "", org: "" });
+  const [f, setF] = useState({ nom: "", ape: "", email: "", tel: "", fecha: "", hora: "", lugar: "", pass: "" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
   const u = (k, v) => setF(p => ({ ...p, [k]: v }));
@@ -330,10 +332,8 @@ function Register({ go, lang, setDynamicUser }) {
     if (!f.nom || !f.ape || !f.email || !f.fecha || !f.hora || !f.lugar || !f.pass) {
       setErr("Completá todos los campos obligatorios."); return;
     }
-    setLoading(true);
-    setErr("");
+    setLoading(true); setErr("");
     try {
-      // 1. Calcular diseño
       const r = await fetch("/api/hd", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -342,48 +342,26 @@ function Register({ go, lang, setDynamicUser }) {
       const diseno = await r.json();
       if (diseno.error) { setErr("Error al calcular tu diseño: " + diseno.error); setLoading(false); return; }
 
-      // 2. Guardar en Supabase directamente
-      const dbR = await fetch("https://ebczaoptweskqzuzrmls.supabase.co/rest/v1/usuarios", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": SUPABASE_KEY,
-          "Authorization": `Bearer ${SUPABASE_KEY}`,
-          "Prefer": "return=minimal"
-        },
-        body: JSON.stringify({
-          email: f.email.toLowerCase().trim(),
-          nombre: f.nom,
-          apellido: f.ape,
-          password_hash: f.pass,
-          empresa: f.org || null,
-          diseno: diseno
-        })
+      const { error: authError } = await supabase.auth.signUp({
+        email: f.email.toLowerCase().trim(),
+        password: f.pass,
+        options: { emailRedirectTo: "https://metodosimple.ar", data: { nombre: f.nom, apellido: f.ape } }
       });
 
-      if (!dbR.ok) {
-        const dbErr = await dbR.json().catch(() => ({}));
-        if (dbErr.message?.includes("duplicate") || dbErr.code === "23505") {
-          setErr("Ese email ya está registrado. Ingresá con tu contraseña."); setLoading(false); return;
-        }
-        setErr("Error al crear la cuenta: " + (dbErr.message || dbErr.error || dbR.status)); setLoading(false); return;
+      if (authError) {
+        setErr(authError.message.includes("already registered") ? "Ese email ya está registrado. Ingresá con tu contraseña." : authError.message);
+        setLoading(false); return;
       }
 
-      setDynamicUser({ ...diseno, email: f.email.toLowerCase().trim() });
-
-      // Notificar a Fran por email
-      await fetch("/api/notify", {
+      await fetch(`${SUPABASE_URL}/rest/v1/usuarios`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: "Nuevo usuario en SIMPLE",
-          body: `Nombre: ${f.nom} ${f.ape}\nEmail: ${f.email}\nOrganización: ${f.org || "No especificada"}\nFecha de nacimiento: ${f.fecha}\nLugar: ${f.lugar}`
-        }),
-      }).catch(() => {});
+        headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Prefer": "return=minimal" },
+        body: JSON.stringify({ email: f.email.toLowerCase().trim(), nombre: f.nom, apellido: f.ape, password_hash: f.pass, diseno: diseno })
+      });
 
-      go("onboarding", f.email.toLowerCase().trim());
+      go("pending", f.email.toLowerCase().trim());
     } catch (e) {
-      setErr("Error: " + (e?.message || "No se pudo conectar con el servidor."));
+      setErr("Error: " + (e?.message || "No se pudo conectar."));
     }
     setLoading(false);
   }
@@ -403,8 +381,6 @@ function Register({ go, lang, setDynamicUser }) {
           <input style={inp} type="email" placeholder="tu@email.com" value={f.email} onChange={e => u("email", e.target.value)} />
           <label style={lbl}>Teléfono</label>
           <input style={inp} type="tel" placeholder="+54 11 0000 0000" value={f.tel} onChange={e => u("tel", e.target.value)} />
-          <label style={lbl}>Organización o empresa (opcional)</label>
-          <input style={inp} placeholder="Nombre de tu empresa o institución" value={f.org} onChange={e => u("org", e.target.value)} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
             <div><label style={lbl}>Fecha *</label><input style={{ ...inp, colorScheme: "dark" }} type="date" value={f.fecha} onChange={e => u("fecha", e.target.value)} /></div>
             <div><label style={lbl}>Hora *</label><input style={{ ...inp, colorScheme: "dark" }} type="time" value={f.hora} onChange={e => u("hora", e.target.value)} /></div>
@@ -469,43 +445,35 @@ function Login({ go, lang, setDynamicUser }) {
       return;
     }
 
-    // Luego intentar Supabase
-    setLoading(true);
-    setErr("");
+    // Login con Supabase Auth
+    setLoading(true); setErr("");
     try {
-      const r = await fetch(`https://ebczaoptweskqzuzrmls.supabase.co/rest/v1/usuarios?email=eq.${encodeURIComponent(emailClean)}&select=*`, {
-        headers: {
-          "apikey": SUPABASE_KEY,
-          "Authorization": `Bearer ${SUPABASE_KEY}`
+      const { error: authError } = await supabase.auth.signInWithPassword({ email: emailClean, password: pass });
+
+      if (authError) {
+        if (authError.message.includes("Email not confirmed")) {
+          setErr(lang === "en" ? "Please confirm your email first." : "Confirmá tu email antes de ingresar. Revisá tu bandeja de entrada.");
+        } else {
+          setErr(lang === "en" ? "Wrong email or password." : "Email o contraseña incorrectos.");
         }
+        setLoading(false); return;
+      }
+
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?email=eq.${encodeURIComponent(emailClean)}&select=*`, {
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
       });
       const users = await r.json();
-      if (!users || users.length === 0) {
-        setErr(lang === "en" ? "Email not found." : "Email no encontrado."); setLoading(false); return;
-      }
+      if (!users || users.length === 0) { setErr(lang === "en" ? "User not found." : "Usuario no encontrado."); setLoading(false); return; }
       const user = users[0];
-      if (user.password_hash !== pass) {
-        setErr(lang === "en" ? "Wrong password." : "Contraseña incorrecta."); setLoading(false); return;
-      }
       setDynamicUser({ ...user.diseno, nombre: user.nombre, apellido: user.apellido, email: emailClean, rol: user.rol });
-      
-      // Verificar si tiene conversaciones previas para saltar el onboarding
+
       try {
-        const convR = await fetch(`https://ebczaoptweskqzuzrmls.supabase.co/rest/v1/conversaciones?usuario_email=eq.${encodeURIComponent(emailClean)}&limit=1`, {
-          headers: {
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`
-          }
+        const convR = await fetch(`${SUPABASE_URL}/rest/v1/conversaciones?usuario_email=eq.${encodeURIComponent(emailClean)}&limit=1`, {
+          headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
         });
         const convs = await convR.json();
-        if (Array.isArray(convs) && convs.length > 0) {
-          go("chat", emailClean); // Ya usó la app antes → directo al chat
-        } else {
-          go("onboarding", emailClean); // Primera vez → onboarding
-        }
-      } catch {
-        go("onboarding", emailClean);
-      }
+        if (Array.isArray(convs) && convs.length > 0) { go("chat", emailClean); } else { go("onboarding", emailClean); }
+      } catch { go("onboarding", emailClean); }
     } catch {
       setErr(lang === "en" ? "Connection error. Try again." : "Error de conexión. Intentá de nuevo.");
     }
@@ -523,6 +491,16 @@ function Login({ go, lang, setDynamicUser }) {
           <input style={inp} type="email" placeholder="tu@email.com" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
           <label style={lbl}>{lang === "en" ? "Password" : "Contraseña"}</label>
           <Eye value={pass} onChange={e => setPass(e.target.value)} placeholder={lang === "en" ? "Your password" : "Tu contraseña"} onKeyDown={e => e.key === "Enter" && ok()} />
+          <div style={{ textAlign: "right", marginBottom: "1rem" }}>
+            <button onClick={async () => {
+              if (!email) { setErr(lang === "en" ? "Enter your email first." : "Ingresá tu email primero."); return; }
+              const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase().trim(), { redirectTo: "https://metodosimple.ar" });
+              if (!error) setErr(lang === "en" ? "✓ Check your email for a reset link." : "✓ Te mandamos un link para resetear tu contraseña.");
+              else setErr(error.message);
+            }} style={{ color: C.gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".1em" }}>
+              {lang === "en" ? "Forgot password?" : "¿Olvidaste tu contraseña?"}
+            </button>
+          </div>
           <button onClick={ok} disabled={loading} style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: loading ? 0.7 : 1 }}>
             {loading ? "..." : (lang === "en" ? "Sign in" : "Ingresar")}
           </button>
@@ -638,6 +616,12 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
   const [bitacora, setBitacora] = useState("");
   const [bitacoraId, setBitacoraId] = useState(null);
   const [savingBitacora, setSavingBitacora] = useState(false);
+  const [documentos, setDocumentos] = useState([]);
+  const [docNombre, setDocNombre] = useState("");
+  const [docTexto, setDocTexto] = useState("");
+  const [docLoading, setDocLoading] = useState(false);
+  const [docModo, setDocModo] = useState("pdf"); // "pdf" | "texto"
+  const docFileRef = React.useRef(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState(null);
@@ -677,7 +661,79 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
     }
     cargarConversaciones();
     cargarBitacora();
+    cargarDocumentos();
   }, [userEmail]);
+
+  async function cargarDocumentos() {
+    try {
+      const data = await dbFetch(`documentos?usuario_email=eq.${encodeURIComponent(userEmail)}&order=created_at.asc`);
+      if (Array.isArray(data)) setDocumentos(data);
+    } catch {}
+  }
+
+  async function subirDocumento() {
+    if (!docNombre.trim() || !docTexto.trim()) return;
+    setDocLoading(true);
+    try {
+      const result = await dbFetch("documentos", {
+        method: "POST",
+        body: JSON.stringify({ usuario_email: userEmail, nombre: docNombre.trim(), contenido: docTexto.trim(), activo: true })
+      });
+      if (Array.isArray(result) && result[0]) {
+        setDocumentos(prev => [...prev, result[0]]);
+        setDocNombre("");
+        setDocTexto("");
+      }
+    } catch {}
+    setDocLoading(false);
+  }
+
+  async function toggleDocumento(id, activo) {
+    try {
+      await dbFetch(`documentos?id=eq.${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ activo: !activo })
+      });
+      setDocumentos(prev => prev.map(d => d.id === id ? { ...d, activo: !activo } : d));
+    } catch {}
+  }
+
+  async function eliminarDocumento(id) {
+    try {
+      await dbFetch(`documentos?id=eq.${id}`, { method: "DELETE" });
+      setDocumentos(prev => prev.filter(d => d.id !== id));
+    } catch {}
+  }
+
+  async function handleDocPdf(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert("El PDF supera los 5MB."); return; }
+    setDocLoading(true);
+    if (!docNombre.trim()) setDocNombre(file.name.replace(".pdf", ""));
+    try {
+      const base64 = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result.split(",")[1]);
+        r.onerror = rej;
+        r.readAsDataURL(file);
+      });
+      const resp = await fetch("/api/chat", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514", max_tokens: 4000,
+          messages: [{ role: "user", content: [
+            { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } },
+            { type: "text", text: "Extraé todo el texto de este documento. Solo el texto, sin comentarios." }
+          ]}]
+        })
+      });
+      const data = await resp.json();
+      setDocTexto(data.content?.[0]?.text || "");
+    } catch { alert("No se pudo leer el PDF."); }
+    setDocLoading(false);
+    e.target.value = "";
+  }
 
   // Guardar conversación en Supabase después de cada respuesta
   async function guardarConversacion(mensajes) {
@@ -750,7 +806,22 @@ For vague questions, ask ONE clarifying question first.`;
   const contextoBase = problema ? `\nPROBLEMA ACTIVO: "${problema.raiz}". Área: ${problema.area}.` : "";
   const contextoDesafio = desafioActual ? `\nESTÁS TRABAJANDO ESPECÍFICAMENTE EL DESAFÍO: "${desafioActual.titulo}" — ${desafioActual.descripcion}. Enfocá todas tus respuestas en ayudar a la persona a avanzar en este desafío concreto.` : "";
   const contextoPDF = pdfTexto ? `\n\nDOCUMENTO SUBIDO POR EL USUARIO ("${pdfNombre}"):\n${pdfTexto.slice(0, 8000)}` : "";
-  const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user) + contextoBase + contextoDesafio + contextoPDF;
+  const documentosActivos = documentos.filter(d => d.activo);
+  const hoy = new Date().toLocaleDateString("es-AR", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const contextoDocumentos = documentosActivos.length > 0
+    ? `\n\nFECHA ACTUAL: ${hoy}
+
+DOCUMENTOS PERSONALES DEL USUARIO:
+${documentosActivos.map(d => `--- ${d.nombre} ---\n${d.contenido.slice(0, 4000)}`).join("\n\n")}
+
+INSTRUCCIÓN CRÍTICA SOBRE LOS DOCUMENTOS:
+Tenés acceso a los documentos personales del usuario (pueden incluir revolución solar, análisis astrológicos, reportes de otras herramientas, etc.).
+- Sabés la fecha de hoy. Siempre revisá si alguno de estos documentos contiene información relevante para el período actual (aproximadamente ±10 días desde hoy).
+- Si el usuario está hablando de un tema (decisiones, contratos, relaciones, energía, trabajo, etc.) y en sus documentos hay información sobre ese período que sea pertinente, integrala en tu respuesta mencionando brevemente de qué documento proviene — por ejemplo "según tu revolución solar..." o "en el análisis que tenés cargado...". Que sea natural, no un disclaimer, sino parte orgánica del análisis.
+- Si la información del período indica energía favorable para lo que está evaluando, mencionalo. Si indica lo contrario o sugiere cautela, también mencionalo — con la misma franqueza con que abordás cualquier aspecto del diseño.
+- No fuerces la conexión si no es relevante. Solo si aporta valor real a lo que se está conversando.`
+    : "";
+  const sys = (lang === "en" ? EN_PROMPT : SYSTEM_PROMPT) + "\nPERSON'S DESIGN: " + JSON.stringify(user) + contextoBase + contextoDesafio + contextoPDF + contextoDocumentos;
 
   const lastAssistantRef = React.useRef(null);
   const chatContainerRef = React.useRef(null);
@@ -906,7 +977,8 @@ For vague questions, ask ONE clarifying question first.`;
         {[
           ["mi-diseno", lang === "en" ? "My Design" : "Mi diseño"],
           ["inspiracion", lang === "en" ? "Inspiration" : "Inspiración"],
-          ["como-funciona", lang === "en" ? "How it works" : "Cómo funciona"]
+          ["como-funciona", lang === "en" ? "How it works" : "Cómo funciona"],
+          ["documentos", lang === "en" ? "My documents" : "Mis documentos"]
         ].map(([id, label]) => (
           <button key={id} className={`tab-btn${tab === id ? " active" : ""}`}
             onClick={() => setTab(tab === id ? null : id)}>
@@ -970,6 +1042,69 @@ For vague questions, ask ONE clarifying question first.`;
             <p>No da respuestas genéricas. Todo lo que te diga está basado en tu diseño específico — tu tipo, autoridad, perfil y centros.</p>
             <p style={{ marginBottom: 0 }}>Cuanto más contexto le des sobre tu situación concreta, mejor va a ser la respuesta. No hace falta que sepas nada de Diseño Humano para usarlo.</p>
           </>}
+        </div>
+      )}
+      {tab === "documentos" && (
+        <div style={{ padding: "1.2rem 2rem", borderBottom: "1px solid rgba(184,154,78,.1)", background: darkModeUser ? "rgba(255,255,255,.02)" : "rgba(0,0,0,.03)", display: "flex", flexDirection: "column", gap: "1rem", maxHeight: "55vh", overflowY: "auto" }}>
+          {/* Lista de documentos */}
+          {documentos.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: ".5rem" }}>
+              <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".3rem" }}>
+                {lang === "en" ? "Your documents" : "Tus documentos"} ({documentosActivos.length} {lang === "en" ? "active" : "activos"})
+              </div>
+              {documentos.map(d => (
+                <div key={d.id} style={{ display: "flex", alignItems: "center", gap: ".6rem", padding: ".6rem .8rem", border: `1px solid ${d.activo ? "rgba(184,154,78,.3)" : "rgba(184,154,78,.1)"}`, borderRadius: 8, background: d.activo ? "rgba(184,154,78,.05)" : "transparent" }}>
+                  <button onClick={() => toggleDocumento(d.id, d.activo)}
+                    style={{ width: 18, height: 18, borderRadius: 4, border: `1px solid ${d.activo ? C.gold : "rgba(184,154,78,.3)"}`, background: d.activo ? C.gold : "transparent", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".6rem", color: d.activo ? C.bg : C.dim }}>
+                    {d.activo ? "✓" : ""}
+                  </button>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: ".82rem", color: d.activo ? C.txt : C.dim, fontFamily: NUNITO, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.nombre}</div>
+                    <div style={{ fontSize: ".68rem", color: C.dim, fontFamily: "monospace" }}>{Math.round(d.contenido.length / 4)} {lang === "en" ? "words approx." : "palabras aprox."}</div>
+                  </div>
+                  <button onClick={() => eliminarDocumento(d.id)}
+                    style={{ background: "none", border: "none", color: C.dim, cursor: "pointer", fontSize: ".9rem", flexShrink: 0 }}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Subir nuevo */}
+          <div style={{ borderTop: documentos.length > 0 ? "1px solid rgba(184,154,78,.1)" : "none", paddingTop: documentos.length > 0 ? "1rem" : 0 }}>
+            <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: C.gold, textTransform: "uppercase", marginBottom: ".6rem" }}>
+              {lang === "en" ? "Add document" : "Agregar documento"}
+            </div>
+            {/* Modo PDF / Texto */}
+            <div style={{ display: "flex", gap: ".4rem", marginBottom: ".7rem" }}>
+              {["pdf", "texto"].map(m => (
+                <button key={m} onClick={() => setDocModo(m)}
+                  style={{ background: docModo === m ? "rgba(184,154,78,.15)" : "transparent", border: `1px solid ${docModo === m ? C.gold : "rgba(184,154,78,.2)"}`, borderRadius: 20, color: docModo === m ? C.gold : C.dim, fontFamily: "monospace", fontSize: ".48rem", letterSpacing: ".15em", padding: ".3em .8em", cursor: "pointer", textTransform: "uppercase" }}>
+                  {m === "pdf" ? "PDF" : (lang === "en" ? "Text" : "Texto")}
+                </button>
+              ))}
+            </div>
+            <input value={docNombre} onChange={e => setDocNombre(e.target.value)}
+              placeholder={lang === "en" ? "Document name (e.g. Solar Return 2025)" : "Nombre del documento (ej: Revolución Solar 2025)"}
+              style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.2)", color: C.txt, fontFamily: NUNITO, fontSize: ".82rem", padding: ".4rem 0", outline: "none", marginBottom: ".7rem", boxSizing: "border-box" }} />
+            {docModo === "pdf" ? (
+              <div>
+                <input ref={docFileRef} type="file" accept=".pdf" onChange={handleDocPdf} style={{ display: "none" }} />
+                <button onClick={() => docFileRef.current?.click()} disabled={docLoading}
+                  style={{ width: "100%", border: "2px dashed rgba(184,154,78,.25)", borderRadius: 8, padding: ".8rem", background: "transparent", color: C.dim, fontFamily: NUNITO, fontSize: ".8rem", cursor: docLoading ? "wait" : "pointer", textAlign: "center" }}>
+                  {docLoading ? (lang === "en" ? "Reading PDF..." : "Leyendo PDF...") : (docTexto ? `✓ ${lang === "en" ? "PDF read" : "PDF leído"} — ${lang === "en" ? "click Save" : "hacé clic en Guardar"}` : (lang === "en" ? "Click to select PDF" : "Hacé clic para seleccionar PDF"))}
+                </button>
+              </div>
+            ) : (
+              <textarea value={docTexto} onChange={e => setDocTexto(e.target.value)}
+                placeholder={lang === "en" ? "Paste your document content here..." : "Pegá el contenido de tu documento acá..."}
+                style={{ width: "100%", background: "transparent", border: "1px solid rgba(184,154,78,.2)", borderRadius: 8, color: C.txt, fontFamily: NUNITO, fontSize: ".82rem", padding: ".6rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 100, boxSizing: "border-box" }} />
+            )}
+            {docTexto && (
+              <button onClick={subirDocumento} disabled={docLoading || !docNombre.trim()}
+                style={{ marginTop: ".6rem", background: C.gold, color: C.bg, border: "none", borderRadius: 20, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".6em 1.5em", cursor: docLoading || !docNombre.trim() ? "not-allowed" : "pointer", textTransform: "uppercase", opacity: docLoading || !docNombre.trim() ? 0.5 : 1 }}>
+                {lang === "en" ? "Save document" : "Guardar documento"}
+              </button>
+            )}
+          </div>
         </div>
       )}
       {tab === "bitacora" && (
@@ -1191,7 +1326,45 @@ Respondé SOLO con un JSON válido sin markdown:
 const ADMIN_EMAIL = "soyfranblanco@gmail.com";
 const ADMIN_PASS = "soyadmin";
 
-function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSeleccion, seleccionar, setView, setTeamMsgs }) {
+function EmpresaEditor({ usuario, gold, AC, onUpdate }) {
+  const [editando, setEditando] = React.useState(false);
+  const [valor, setValor] = React.useState(usuario?.empresa || "");
+  async function guardar() {
+    try {
+      const res = await fetch("/api/update-usuario", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: usuario.email, fields: { empresa: valor } })
+      });
+      if (res.ok) {
+        onUpdate(valor);
+        setEditando(false);
+      } else {
+        const err = await res.text();
+        console.error("Error guardando empresa:", err);
+      }
+    } catch(e) { console.error("Error empresa:", e); }
+  }
+
+  if (!editando) return (
+    <div onClick={() => setEditando(true)} style={{ cursor: "pointer", fontSize: ".8rem", color: valor ? AC.txt : AC.dim, padding: ".3rem 0", borderBottom: "1px solid rgba(184,154,78,.15)", minHeight: "1.8rem" }}>
+      {valor || <span style={{ fontStyle: "italic", fontSize: ".75rem" }}>Agregar empresa...</span>}
+    </div>
+  );
+
+  return (
+    <div style={{ display: "flex", gap: ".4rem" }}>
+      <input autoFocus value={valor} onChange={e => setValor(e.target.value)}
+        onKeyDown={e => { if (e.key === "Enter") guardar(); if (e.key === "Escape") setEditando(false); }}
+        style={{ flex: 1, background: "transparent", border: "none", borderBottom: `1px solid ${gold}`, color: AC.txt, fontFamily: "inherit", fontSize: ".8rem", padding: ".3rem 0", outline: "none" }}
+        placeholder="Nombre de empresa..." />
+      <button onClick={guardar} style={{ background: "none", border: "none", color: gold, cursor: "pointer", fontSize: ".7rem", fontFamily: "monospace" }}>✓</button>
+      <button onClick={() => setEditando(false)} style={{ background: "none", border: "none", color: AC.dim, cursor: "pointer", fontSize: ".8rem" }}>×</button>
+    </div>
+  );
+}
+
+function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSeleccion, seleccionar, setView, setTeamMsgs, cargarConvEquipo }) {
   const [busqueda, setBusqueda] = React.useState("");
   const filtrados = busqueda.trim()
     ? usuarios.filter(u => {
@@ -1199,7 +1372,8 @@ function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSelecc
         return (
           (u.nombre + " " + u.apellido).toLowerCase().includes(q) ||
           u.email.toLowerCase().includes(q) ||
-          (u.diseno?.tipo || "").toLowerCase().includes(q)
+          (u.diseno?.tipo || "").toLowerCase().includes(q) ||
+          (u.empresa || "").toLowerCase().includes(q)
         );
       })
     : usuarios;
@@ -1226,7 +1400,7 @@ function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSelecc
           {filtrados.length} USUARIO{filtrados.length !== 1 ? "S" : ""}{busqueda ? ` · "${busqueda}"` : ""}
         </div>
         {seleccionados.length >= 2 && (
-          <button onClick={() => { setTeamMsgs([]); setView("equipo"); }}
+          <button onClick={() => { setView("equipo"); setTimeout(() => cargarConvEquipo(), 50); }}
             style={{ background: gold, color: AC.bg, border: "none", borderRadius: 20, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5em 1.2em", cursor: "pointer", textTransform: "uppercase" }}>
             Analizar equipo ({seleccionados.length})
           </button>
@@ -1251,7 +1425,10 @@ function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSelecc
                 onMouseEnter={e => e.currentTarget.style.borderColor = gold}
                 onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(184,154,78,.15)"}>
                 <div>
-                  <div style={{ fontSize: ".95rem", fontWeight: 600, color: AC.txt, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap", marginBottom: ".2rem" }}>
+                    <div style={{ fontSize: ".95rem", fontWeight: 600, color: AC.txt }}>{u.nombre} {u.apellido}</div>
+                    {u.empresa && <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".15em", color: AC.bg, background: gold, padding: ".2em .6em", borderRadius: 20, textTransform: "uppercase" }}>{u.empresa}</div>}
+                  </div>
                   <div style={{ fontSize: ".78rem", color: AC.dim }}>{u.email}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
@@ -1322,7 +1499,8 @@ function AdminPanel() {
   React.useEffect(() => {
     if (!authed) return;
     async function cargar() {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?select=email,nombre,apellido,diseno,created_at&order=created_at.desc`, {
+      console.log("Cargando usuarios con campo empresa...");
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?select=email,nombre,apellido,diseno,empresa,created_at&order=created_at.desc`, {
         headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
       });
       const data = await r.json();
@@ -1448,6 +1626,7 @@ function AdminPanel() {
 
   const [seleccionados, setSeleccionados] = useState([]);
   const [teamMsgs, setTeamMsgs] = useState([]);
+  const [teamConvId, setTeamConvId] = useState(null);
   const [teamInput, setTeamInput] = useState("");
   const [teamLoading, setTeamLoading] = useState(false);
   const teamEndRef = React.useRef(null);
@@ -1463,8 +1642,52 @@ function AdminPanel() {
     setSeleccionados(prev =>
       prev.find(s => s.email === u.email)
         ? prev.filter(s => s.email !== u.email)
-        : prev.length < 4 ? [...prev, u] : prev
+        : prev.length < 8 ? [...prev, u] : prev
     );
+  }
+
+  function teamKey() {
+    return "equipo::" + [...seleccionados].map(u => u.email).sort().join("|");
+  }
+
+  async function cargarConvEquipo() {
+    const key = teamKey();
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/conversaciones?usuario_email=eq.${encodeURIComponent(key)}&order=updated_at.desc&limit=1`, {
+        headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+      });
+      const data = await r.json();
+      if (Array.isArray(data) && data[0]?.mensajes) {
+        setTeamMsgs(data[0].mensajes);
+        setTeamConvId(data[0].id);
+      } else {
+        setTeamMsgs([]);
+        setTeamConvId(null);
+      }
+    } catch { setTeamMsgs([]); setTeamConvId(null); }
+  }
+
+  async function guardarConvEquipo(mensajes, currentId) {
+    const key = teamKey();
+    try {
+      if (currentId) {
+        await fetch("/api/update-usuario", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update-conversacion", id: currentId, mensajes })
+        });
+        return currentId;
+      } else {
+        const r = await fetch("/api/update-usuario", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "insert-conversacion", email: key, modo: "equipo", mensajes })
+        });
+        const data = await r.json();
+        if (Array.isArray(data) && data[0]?.id) return data[0].id;
+      }
+    } catch(e) { console.error("Error guardando conv equipo:", e); }
+    return currentId;
   }
 
   async function sendTeam() {
@@ -1496,7 +1719,10 @@ INSTRUCCIONES:
         body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, system: sys, messages: next })
       });
       const d = await r.json();
-      setTeamMsgs([...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }]);
+      const finalTeamMsgs = [...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }];
+      setTeamMsgs(finalTeamMsgs);
+      const newTeamId = await guardarConvEquipo(finalTeamMsgs, teamConvId);
+      if (newTeamId && !teamConvId) setTeamConvId(newTeamId);
     } catch {
       setTeamMsgs([...next, { role: "assistant", content: "Error de conexión." }]);
     }
@@ -1550,13 +1776,13 @@ INSTRUCCIONES:
             )}
           </button>
           {(view === "chat" || view === "equipo") && (
-            <button onClick={() => { setView("lista"); setSeleccionados([]); setTeamMsgs([]); }} style={{ color: gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
+            <button onClick={() => { setView("lista"); setSeleccionados([]); setTeamMsgs([]); setTeamConvId(null); }} style={{ color: gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
           )}
         </div>
       </div>
 
       {view === "lista" && (
-        <AdminListaConBusqueda usuarios={usuarios} gold={gold} AC={AC} seleccionados={seleccionados} toggleSeleccion={toggleSeleccion} seleccionar={seleccionar} setView={setView} setTeamMsgs={setTeamMsgs} />
+        <AdminListaConBusqueda usuarios={usuarios} gold={gold} AC={AC} seleccionados={seleccionados} toggleSeleccion={toggleSeleccion} seleccionar={seleccionar} setView={setView} setTeamMsgs={setTeamMsgs} cargarConvEquipo={cargarConvEquipo} />
       )}
       {view === "__REMOVED__" && (
         <div style={{ maxWidth: 800, margin: "2rem auto", padding: "0 2rem" }}>
@@ -1565,7 +1791,7 @@ INSTRUCCIONES:
               {usuarios.length} USUARIO{usuarios.length !== 1 ? "S" : ""}
             </div>
             {seleccionados.length >= 2 && (
-              <button onClick={() => { setTeamMsgs([]); setView("equipo"); }}
+              <button onClick={() => { setView("equipo"); setTimeout(() => cargarConvEquipo(), 50); }}
                 style={{ background: gold, color: AC.bg, border: "none", borderRadius: 20, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".5em 1.2em", cursor: "pointer", textTransform: "uppercase" }}>
                 Analizar equipo ({seleccionados.length})
               </button>
@@ -1588,7 +1814,10 @@ INSTRUCCIONES:
                     onMouseEnter={e => e.currentTarget.style.borderColor = gold}
                     onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(184,154,78,.15)"}>
                     <div>
-                      <div style={{ fontSize: ".95rem", fontWeight: 600, color: AC.txt, marginBottom: ".2rem" }}>{u.nombre} {u.apellido}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap", marginBottom: ".2rem" }}>
+                        <div style={{ fontSize: ".95rem", fontWeight: 600, color: AC.txt }}>{u.nombre} {u.apellido}</div>
+                        {u.empresa && <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".15em", color: AC.bg, background: gold, padding: ".2em .6em", borderRadius: 20, textTransform: "uppercase" }}>{u.empresa}</div>}
+                      </div>
                       <div style={{ fontSize: ".78rem", color: AC.dim }}>{u.email}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
@@ -1614,13 +1843,16 @@ INSTRUCCIONES:
               </div>
               {seleccionados.map((u, i) => (
                 <div key={i} style={{ marginBottom: "1.2rem", paddingBottom: "1.2rem", borderBottom: "1px solid rgba(184,154,78,.1)" }}>
-                  <div style={{ fontSize: ".9rem", fontWeight: 600, marginBottom: ".2rem", color: AC.txt }}>{u.nombre} {u.apellido}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap", marginBottom: ".2rem" }}>
+                    <div style={{ fontSize: ".9rem", fontWeight: 600, color: AC.txt }}>{u.nombre} {u.apellido}</div>
+                    {u.empresa && <div style={{ fontFamily: "monospace", fontSize: ".4rem", letterSpacing: ".15em", color: AC.bg, background: gold, padding: ".15em .5em", borderRadius: 20, textTransform: "uppercase" }}>{u.empresa}</div>}
+                  </div>
                   <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: gold }}>{u.diseno?.tipo} · {u.diseno?.perfil}</div>
                   <div style={{ fontSize: ".75rem", color: AC.dim, marginTop: ".2rem" }}>{u.diseno?.autoridad}</div>
                 </div>
               ))}
-              <div style={{ marginTop: "1rem", padding: "1rem", background: "rgba(184,154,78,.05)", border: "1px solid rgba(184,154,78,.15)", fontSize: ".78rem", color: AC.dim, lineHeight: 1.6 }}>
-                Sesión temporal — esta conversación no se guarda.
+              <div style={{ marginTop: "1rem", padding: "1rem", background: "rgba(184,154,78,.05)", border: "1px solid rgba(184,154,78,.15)", fontSize: ".78rem", color: AC.dim, lineHeight: 1.6, borderRadius: 10 }}>
+                {teamConvId ? "✓ Conversación guardada" : "La conversación se guardará con el primer mensaje."}
               </div>
             </div>
           </div>
@@ -1694,7 +1926,12 @@ INSTRUCCIONES:
                 </div>
               ))}
               <div style={{ borderTop: "1px solid rgba(184,154,78,.15)", marginTop: ".5rem", paddingTop: "1rem" }}>
-                <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".5rem" }}>Mis notas</div>
+                <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".4rem" }}>Empresa</div>
+                <EmpresaEditor usuario={selected} gold={gold} AC={AC} onUpdate={(empresa) => {
+                  setUsuarios(prev => prev.map(u => u.email === selected.email ? { ...u, empresa } : u));
+                  setSelected(prev => ({ ...prev, empresa }));
+                }} />
+                <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".5rem", marginTop: "1rem" }}>Mis notas</div>
                 <textarea value={nota} onChange={e => setNota(e.target.value)}
                   style={{ width: "100%", background: darkMode ? "rgba(255,255,255,.03)" : "rgba(0,0,0,.04)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: AC.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 120, boxSizing: "border-box", marginBottom: ".5rem", display: "block" }}
                   placeholder="Anotá contexto sobre este cliente..." />
