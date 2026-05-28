@@ -1,0 +1,20 @@
+// Rate limiting client-side
+const RL_KEY = `cu_rl_${email.toLowerCase().trim()}`;
+const rlRaw = localStorage.getItem(RL_KEY);
+const rl = rlRaw ? JSON.parse(rlRaw) : { count: 0, first: Date.now() };
+const now = Date.now();
+const windowMs = 15 * 60 * 1000;
+
+if (now - rl.first > windowMs) {
+  localStorage.setItem(RL_KEY, JSON.stringify({ count: 1, first: now }));
+} else if (rl.count >= 5) {
+  const waitMin = Math.ceil((windowMs - (now - rl.first)) / 60000);
+  setErr(es
+    ? `Demasiados intentos. Esperá ${waitMin} minuto${waitMin > 1 ? "s" : ""} e intentá de nuevo.`
+    : `Too many attempts. Please wait ${waitMin} minute${waitMin > 1 ? "s" : ""} and try again.`
+  );
+  setLoading(false);
+  return;
+} else {
+  localStorage.setItem(RL_KEY, JSON.stringify({ count: rl.count + 1, first: rl.first }));
+}
