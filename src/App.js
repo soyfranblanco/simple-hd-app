@@ -1100,24 +1100,77 @@ function EmpresaEditor({ usuario, gold, AC, onUpdate }) {
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
+  const [step, setStep] = useState("credentials"); // "credentials" | "code"
+  const [code, setCode] = useState("");
   const [err, setErr] = useState("");
-  function ok() {
-    if (email.toLowerCase().trim() === ADMIN_EMAIL && pass === ADMIN_PASS) { onLogin(); }
-    else { setErr("Credenciales incorrectas."); }
+  const [loading, setLoading] = useState(false);
+
+  async function submitCredentials() {
+    if (email.toLowerCase().trim() !== ADMIN_EMAIL || pass !== ADMIN_PASS) {
+      setErr("Credenciales incorrectas."); return;
+    }
+    setLoading(true); setErr("");
+    try {
+      const r = await fetch("/api/admin-auth", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "send-code" })
+      });
+      const data = await r.json();
+      if (!r.ok) { setErr("Error al enviar el código: " + (data.error || r.status)); setLoading(false); return; }
+      setStep("code");
+    } catch { setErr("Error de conexión."); }
+    setLoading(false);
   }
+
+  async function submitCode() {
+    if (!code || code.length !== 6) { setErr("Ingresá el código de 6 dígitos."); return; }
+    setLoading(true); setErr("");
+    try {
+      const r = await fetch("/api/admin-auth", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "verify-code", code })
+      });
+      const data = await r.json();
+      if (!r.ok) { setErr(data.error || "Código incorrecto."); setLoading(false); return; }
+      onLogin();
+    } catch { setErr("Error de conexión."); }
+    setLoading(false);
+  }
+
   return (
     <div style={{ background: C.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: NUNITO, color: C.txt }}>
       <div style={{ width: "100%", maxWidth: 380, border: "1px solid rgba(184,154,78,.2)", padding: "2.5rem", background: "rgba(255,255,255,.02)", borderRadius: 16 }}>
         <div style={{ ...logo, marginBottom: "1.5rem" }}>SIMPLE</div>
         <div style={{ fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".3em", color: C.gold, marginBottom: "1.5rem" }}>ADMIN ACCESS</div>
         {err && <div style={{ color: "#c06040", fontFamily: "monospace", fontSize: ".63rem", marginBottom: ".8rem" }}>{err}</div>}
-        <label style={lbl}>Email</label>
-        <input style={inp} type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
-        <label style={lbl}>Contraseña</label>
-        <Eye value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && ok()} />
-        <button onClick={ok} style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: "pointer", textTransform: "uppercase", width: "100%", marginTop: ".5rem" }}>
-          Ingresar
-        </button>
+
+        {step === "credentials" ? <>
+          <label style={lbl}>Email</label>
+          <input style={inp} type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && submitCredentials()} />
+          <label style={lbl}>Contraseña</label>
+          <Eye value={pass} onChange={e => setPass(e.target.value)} onKeyDown={e => e.key === "Enter" && submitCredentials()} />
+          <button onClick={submitCredentials} disabled={loading}
+            style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", marginTop: ".5rem", opacity: loading ? 0.6 : 1 }}>
+            {loading ? "Enviando código..." : "Continuar"}
+          </button>
+        </> : <>
+          <div style={{ color: C.dim, fontSize: ".82rem", fontFamily: NUNITO, lineHeight: 1.6, marginBottom: "1.5rem" }}>
+            Te mandamos un código de 6 dígitos a <span style={{ color: C.gold }}>soyfranblanco@gmail.com</span>. Vence en 10 minutos.
+          </div>
+          <label style={lbl}>Código de verificación</label>
+          <input style={{ ...inp, fontSize: "1.5rem", letterSpacing: ".4em", textAlign: "center" }}
+            type="text" maxLength={6} placeholder="000000" value={code}
+            onChange={e => setCode(e.target.value.replace(/\D/g, ""))}
+            onKeyDown={e => e.key === "Enter" && submitCode()} />
+          <button onClick={submitCode} disabled={loading || code.length !== 6}
+            style={{ background: C.gold, color: C.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".65rem", letterSpacing: ".3em", padding: ".85em 2em", cursor: loading || code.length !== 6 ? "not-allowed" : "pointer", textTransform: "uppercase", width: "100%", marginTop: ".5rem", opacity: loading || code.length !== 6 ? 0.5 : 1 }}>
+            {loading ? "Verificando..." : "Ingresar"}
+          </button>
+          <button onClick={() => { setStep("credentials"); setCode(""); setErr(""); }}
+            style={{ background: "none", border: "none", color: C.dim, cursor: "pointer", fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".1em", marginTop: ".8rem", width: "100%", textAlign: "center" }}>
+            ← Volver
+          </button>
+        </>}
       </div>
     </div>
   );
