@@ -1097,6 +1097,49 @@ function EmpresaEditor({ usuario, gold, AC, onUpdate }) {
   );
 }
 
+function AdminCityInput({ value, onChange, AC }) {
+  const [sugerencias, setSugerencias] = React.useState([]);
+  const [show, setShow] = React.useState(false);
+  const timer = React.useRef(null);
+
+  async function buscar(q) {
+    if (q.length < 3) { setSugerencias([]); return; }
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&featuretype=city&accept-language=es`);
+      const data = await r.json();
+      setSugerencias(data.map(d => d.display_name));
+    } catch { setSugerencias([]); }
+  }
+
+  function handleChange(e) {
+    onChange(e.target.value);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => buscar(e.target.value), 400);
+    setShow(true);
+  }
+
+  return (
+    <div style={{ position: "relative", marginBottom: "1.2rem" }}>
+      <input style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.3)", color: AC.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".5rem 0", outline: "none", boxSizing: "border-box" }}
+        placeholder="Ciudad, País" value={value} onChange={handleChange}
+        onBlur={() => setTimeout(() => setShow(false), 200)}
+        onFocus={() => sugerencias.length > 0 && setShow(true)} />
+      {show && sugerencias.length > 0 && (
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#1a1a1a", border: "1px solid rgba(184,154,78,.3)", zIndex: 50, maxHeight: 200, overflowY: "auto" }}>
+          {sugerencias.map((s, i) => (
+            <div key={i} onClick={() => { onChange(s); setSugerencias([]); setShow(false); }}
+              style={{ padding: ".7rem 1rem", fontSize: ".82rem", color: "rgba(240,235,224,.6)", cursor: "pointer", borderBottom: "1px solid rgba(184,154,78,.1)" }}
+              onMouseEnter={e => e.target.style.color = "#b89a4e"}
+              onMouseLeave={e => e.target.style.color = "rgba(240,235,224,.6)"}>
+              {s}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -1253,6 +1296,10 @@ function AdminPanel() {
   const [view, setView] = useState("lista");
   const [panelVisible, setPanelVisible] = useState(true);
   const [seleccionados, setSeleccionados] = useState([]);
+  const [nuevoUsuario, setNuevoUsuario] = useState({ nom: "", ape: "", email: "", fecha: "", hora: "", lugar: "", pass: "simple2026" });
+  const [nuevoUsuarioErr, setNuevoUsuarioErr] = useState("");
+  const [nuevoUsuarioLoading, setNuevoUsuarioLoading] = useState(false);
+  const [nuevoUsuarioOk, setNuevoUsuarioOk] = useState(null); // { email, pass }
   const [teamMsgs, setTeamMsgs] = useState([]);
   const [teamConvId, setTeamConvId] = useState(null);
   const [teamInput, setTeamInput] = useState("");
@@ -1403,13 +1450,101 @@ function AdminPanel() {
           <button onClick={() => setDarkMode(v => !v)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", opacity: 0.7 }}>
             {darkMode ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={gold} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={gold} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>}
           </button>
-          {(view === "chat" || view === "equipo") && (
+          {view === "lista" && (
+            <button onClick={() => { setView("nuevo-usuario"); setNuevoUsuarioErr(""); setNuevoUsuarioOk(null); setNuevoUsuario({ nom: "", ape: "", email: "", fecha: "", hora: "", lugar: "", pass: "simple2026" }); }}
+              style={{ background: "transparent", border: `1px solid ${gold}`, color: gold, borderRadius: 20, fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".4em 1em", cursor: "pointer", textTransform: "uppercase" }}>
+              + Crear usuario
+            </button>
+          )}
+          {(view === "chat" || view === "equipo" || view === "nuevo-usuario") && (
             <button onClick={() => { setView("lista"); setSeleccionados([]); setTeamMsgs([]); setTeamConvId(null); }} style={{ color: gold, background: "none", border: "none", cursor: "pointer", fontFamily: "monospace", fontSize: ".6rem" }}>← Volver</button>
           )}
         </div>
       </div>
 
       {view === "lista" && <AdminListaConBusqueda usuarios={usuarios} gold={gold} AC={AC} seleccionados={seleccionados} toggleSeleccion={toggleSeleccion} seleccionar={seleccionar} setView={setView} cargarConvEquipo={cargarConvEquipo} />}
+
+      {view === "nuevo-usuario" && (
+        <div style={{ maxWidth: 520, margin: "2rem auto", padding: "0 2rem" }}>
+          <div style={{ fontFamily: GEORGIA, fontSize: "1.3rem", fontWeight: 300, color: AC.txt, marginBottom: ".4rem" }}>Crear usuario</div>
+          <div style={{ color: AC.dim, fontSize: ".82rem", fontFamily: NUNITO, marginBottom: "1.5rem", lineHeight: 1.6 }}>
+            El usuario se crea con email confirmado. Podés compartirle la contraseña provisoria para que ingrese.
+          </div>
+          {nuevoUsuarioOk ? (
+            <div style={{ border: `1px solid rgba(184,154,78,.3)`, borderRadius: 16, padding: "2rem", background: "rgba(184,154,78,.05)", textAlign: "center" }}>
+              <div style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>✅</div>
+              <div style={{ fontFamily: GEORGIA, fontSize: "1.1rem", color: AC.txt, marginBottom: ".8rem" }}>Usuario creado</div>
+              <div style={{ color: AC.dim, fontFamily: NUNITO, fontSize: ".85rem", lineHeight: 1.8 }}>
+                <strong style={{ color: AC.txt }}>{nuevoUsuarioOk.email}</strong><br />
+                Contraseña provisoria: <span style={{ fontFamily: "monospace", color: gold, fontSize: "1rem", letterSpacing: ".1em" }}>{nuevoUsuarioOk.pass}</span>
+              </div>
+              <div style={{ marginTop: "1rem", fontFamily: "monospace", fontSize: ".5rem", color: AC.dim, letterSpacing: ".1em" }}>
+                Guardá esta contraseña — no se vuelve a mostrar.
+              </div>
+              <button onClick={() => { setView("lista"); setNuevoUsuarioOk(null); }}
+                style={{ marginTop: "1.5rem", background: gold, color: AC.bg, border: "none", borderRadius: 20, fontFamily: "monospace", fontSize: ".55rem", letterSpacing: ".2em", padding: ".6em 1.5em", cursor: "pointer", textTransform: "uppercase" }}>
+                Volver a la lista
+              </button>
+            </div>
+          ) : (
+            <div style={{ border: `1px solid rgba(184,154,78,.2)`, borderRadius: 16, padding: "2rem", background: AC.panelBg }}>
+              {nuevoUsuarioErr && <div style={{ color: "#c06040", fontFamily: "monospace", fontSize: ".63rem", marginBottom: ".8rem" }}>{nuevoUsuarioErr}</div>}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".3rem" }}>Nombre *</div>
+                  <input value={nuevoUsuario.nom} onChange={e => setNuevoUsuario(p => ({ ...p, nom: e.target.value }))}
+                    placeholder="Nombre" style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.3)", color: AC.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".5rem 0", outline: "none", boxSizing: "border-box", marginBottom: "1.2rem" }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".3rem" }}>Apellido *</div>
+                  <input value={nuevoUsuario.ape} onChange={e => setNuevoUsuario(p => ({ ...p, ape: e.target.value }))}
+                    placeholder="Apellido" style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.3)", color: AC.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".5rem 0", outline: "none", boxSizing: "border-box", marginBottom: "1.2rem" }} />
+                </div>
+              </div>
+              <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".3rem" }}>Email *</div>
+              <input type="email" value={nuevoUsuario.email} onChange={e => setNuevoUsuario(p => ({ ...p, email: e.target.value }))}
+                placeholder="usuario@email.com" style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.3)", color: AC.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".5rem 0", outline: "none", boxSizing: "border-box", marginBottom: "1.2rem" }} />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".3rem" }}>Fecha de nac. *</div>
+                  <input type="date" value={nuevoUsuario.fecha} onChange={e => setNuevoUsuario(p => ({ ...p, fecha: e.target.value }))}
+                    style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.3)", color: AC.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".5rem 0", outline: "none", boxSizing: "border-box", marginBottom: "1.2rem", colorScheme: "dark" }} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".3rem" }}>Hora aprox. *</div>
+                  <input type="time" value={nuevoUsuario.hora} onChange={e => setNuevoUsuario(p => ({ ...p, hora: e.target.value }))}
+                    style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.3)", color: AC.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".5rem 0", outline: "none", boxSizing: "border-box", marginBottom: "1.2rem", colorScheme: "dark" }} />
+                </div>
+              </div>
+              <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".3rem" }}>Ciudad de nacimiento *</div>
+              <AdminCityInput value={nuevoUsuario.lugar} onChange={v => setNuevoUsuario(p => ({ ...p, lugar: v }))} AC={AC} />
+              <div style={{ fontFamily: "monospace", fontSize: ".45rem", letterSpacing: ".3em", color: gold, textTransform: "uppercase", marginBottom: ".3rem" }}>Contraseña provisoria *</div>
+              <input value={nuevoUsuario.pass} onChange={e => setNuevoUsuario(p => ({ ...p, pass: e.target.value }))}
+                placeholder="Mínimo 6 caracteres" style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid rgba(184,154,78,.3)", color: AC.txt, fontFamily: NUNITO, fontSize: ".9rem", padding: ".5rem 0", outline: "none", boxSizing: "border-box", marginBottom: "1.5rem" }} />
+              <button onClick={async () => {
+                const { nom, ape, email, fecha, hora, lugar, pass } = nuevoUsuario;
+                if (!nom || !ape || !email || !fecha || !hora || !lugar || !pass) { setNuevoUsuarioErr("Completá todos los campos."); return; }
+                if (pass.length < 6) { setNuevoUsuarioErr("La contraseña debe tener al menos 6 caracteres."); return; }
+                setNuevoUsuarioLoading(true); setNuevoUsuarioErr("");
+                try {
+                  const hdR = await fetch("/api/hd", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre: nom, apellido: ape, birth_date: fecha, birth_time: hora, ciudad: lugar }) });
+                  const diseno = await hdR.json();
+                  if (diseno.error) { setNuevoUsuarioErr("Error al calcular el diseño: " + diseno.error); setNuevoUsuarioLoading(false); return; }
+                  const r = await fetch("/api/admin-usuario", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre: nom, apellido: ape, email: email.toLowerCase().trim(), password: pass, diseno }) });
+                  const data = await r.json();
+                  if (!r.ok) { setNuevoUsuarioErr("Error: " + (data.error || r.status)); setNuevoUsuarioLoading(false); return; }
+                  setNuevoUsuarioOk({ email: email.toLowerCase().trim(), pass });
+                  setUsuarios(prev => [...prev, { nombre: nom, apellido: ape, email: email.toLowerCase().trim(), diseno }]);
+                } catch (e) { setNuevoUsuarioErr("Error de conexión: " + e.message); }
+                setNuevoUsuarioLoading(false);
+              }} disabled={nuevoUsuarioLoading}
+                style={{ background: gold, color: AC.bg, border: "none", borderRadius: 24, fontFamily: "monospace", fontSize: ".6rem", letterSpacing: ".25em", padding: ".8em 2em", cursor: nuevoUsuarioLoading ? "wait" : "pointer", textTransform: "uppercase", width: "100%", opacity: nuevoUsuarioLoading ? 0.6 : 1 }}>
+                {nuevoUsuarioLoading ? "Calculando diseño y creando usuario..." : "Crear usuario"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {view === "equipo" && (
         <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden", position: "relative" }}>
