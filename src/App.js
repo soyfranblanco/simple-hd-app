@@ -562,7 +562,7 @@ function Chat({ go, userEmail, lang, setLang, problema, desafios, setDesafios, s
       const resp = await fetch("/api/chat", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514", max_tokens: 4000,
+          model: "claude-sonnet-4-6", max_tokens: 4000,
           messages: [{ role: "user", content: [
             { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } },
             { type: "text", text: "Extraé todo el texto de este documento. Solo el texto, sin comentarios." }
@@ -642,7 +642,7 @@ For vague questions, ask ONE clarifying question first.`;
     try {
       const r = await fetch("/api/chat", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: sys, messages: next })
+        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, system: sys, messages: next })
       });
       const d = await r.json();
       const finalMsgs = [...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }];
@@ -1004,7 +1004,7 @@ Respondé SOLO con un JSON válido sin markdown:
 }`;
       const r = await fetch("/api/chat", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 400, system: "Respondé SOLO con JSON válido, sin markdown ni texto extra.", messages: [{ role: "user", content: prompt }] })
+        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 400, system: "Respondé SOLO con JSON válido, sin markdown ni texto extra.", messages: [{ role: "user", content: prompt }] })
       });
       const d = await r.json();
       const parsed = JSON.parse((d?.content?.[0]?.text || "{}").replace(/```json|```/g, "").trim());
@@ -1369,7 +1369,7 @@ function AdminPanel() {
     const contextoNotas = notaGuardada ? `\n\nNOTAS PRIVADAS DEL CONSULTOR:\n${notaGuardada}` : "";
     const sys = SYSTEM_PROMPT + "\nDISEÑO DE LA PERSONA: " + JSON.stringify(selected.diseno) + "\nEres el asistente del consultor Fran Blanco." + contextoNotas;
     try {
-      const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: sys, messages: next }) });
+      const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, system: sys, messages: next }) });
       const d = await r.json();
       const finalMsgs = [...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }];
       setMsgs(finalMsgs);
@@ -1411,7 +1411,7 @@ function AdminPanel() {
     const perfiles = seleccionados.map((u, i) => `PERSONA ${i+1} — ${u.nombre} ${u.apellido}: ${JSON.stringify(u.diseno)}`).join("\n\n");
     const sys = `Sos un experto en Diseño Humano especializado en dinámicas de equipo.\n\nEQUIPO:\n${perfiles}\n\nAnalizá dinámicas, complementariedades y tensiones. Identificá roles naturales. Directo, sin jerga espiritual. Cerrá con algo accionable para el equipo.`;
     try {
-      const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1200, system: sys, messages: next }) });
+      const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1200, system: sys, messages: next }) });
       const d = await r.json();
       const finalTeamMsgs = [...next, { role: "assistant", content: d?.content?.[0]?.text || "Error." }];
       setTeamMsgs(finalTeamMsgs);
