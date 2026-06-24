@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
     // ── Obtener todos los usuarios (admin) ────────────────────────────────
     if (action === "get-all") {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?select=email,nombre,apellido,diseno,empresa,created_at&order=created_at.desc`, { headers });
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?select=email,nombre,apellido,diseno,empresa,nota,created_at&order=created_at.desc`, { headers });
       const data = await r.json();
       if (!r.ok) return res.status(r.status).json({ error: data });
       return res.status(200).json(data);
