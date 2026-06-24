@@ -1322,7 +1322,7 @@ function AdminPanel() {
       const simple = Array.isArray(data) ? data : [];
       // Cargar también usuarios de INSIDE
       try {
-        const rInside = await fetch("/api/usuarios_inside", {
+        const rInside = await fetch("https://insideapp.metodosimple.ar/api/usuarios_inside", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "get-all" })
