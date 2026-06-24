@@ -1268,8 +1268,8 @@ function AdminListaConBusqueda({ usuarios, gold, AC, seleccionados, toggleSelecc
                   <div style={{ fontSize: ".78rem", color: AC.dim }}>{u.email}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontFamily: "monospace", fontSize: ".55rem", color: gold }}>{u.diseno?.tipo}</div>
-                  <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: AC.dim }}>Perfil {u.diseno?.perfil}</div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".55rem", color: gold }}>{u._producto === "INSIDE" ? "INSIDE" : (u.diseno?.tipo || "")}</div>
+                  <div style={{ fontFamily: "monospace", fontSize: ".5rem", color: AC.dim }}>{u._producto === "INSIDE" ? (u.diseno?.perfil ? `Perfil ${u.diseno.perfil}` : "AI Partner") : (u.diseno?.perfil ? `Perfil ${u.diseno.perfil}` : "")}</div>
                 </div>
               </button>
             </div>
@@ -1319,7 +1319,20 @@ function AdminPanel() {
     if (!authed) return;
     async function cargar() {
       const data = await apiUsuarios({ action: "get-all" });
-      setUsuarios(Array.isArray(data) ? data : []);
+      const simple = Array.isArray(data) ? data : [];
+      // Cargar también usuarios de INSIDE
+      try {
+        const rInside = await fetch("/api/usuarios_inside", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get-all" })
+        });
+        const dInside = await rInside.json();
+        const insideUsers = (Array.isArray(dInside) ? dInside : []).map(u => ({ ...u, _producto: "INSIDE" }));
+        setUsuarios([...simple, ...insideUsers]);
+      } catch {
+        setUsuarios(simple);
+      }
     }
     cargar();
   }, [authed]);
