@@ -1351,6 +1351,10 @@ function AdminPanel() {
 
   async function seleccionar(u) {
     setSelected(u); setMsgs([]); setConvId(null); setNota(""); setNotaGuardada(""); setView("chat");
+    // Cargar nota guardada
+    const notaGuardadaDB = u.nota || "";
+    setNota(notaGuardadaDB);
+    setNotaGuardada(notaGuardadaDB);
     try {
       const data = await apiConversaciones({ action: "get", email: "admin::" + u.email });
       if (Array.isArray(data) && data.length > 0 && data[0].mensajes?.length > 0) {
@@ -1616,7 +1620,13 @@ function AdminPanel() {
                 <textarea value={nota} onChange={e => setNota(e.target.value)}
                   style={{ width: "100%", background: darkMode ? "rgba(255,255,255,.03)" : "rgba(0,0,0,.04)", border: "1px solid rgba(184,154,78,.2)", borderRadius: 12, color: AC.txt, fontFamily: NUNITO, fontSize: ".8rem", padding: ".7rem", outline: "none", resize: "vertical", lineHeight: 1.6, minHeight: 120, boxSizing: "border-box", marginBottom: ".5rem", display: "block" }}
                   placeholder="Anotá contexto sobre este cliente..." />
-                <button onClick={() => setNotaGuardada(nota)}
+                <button onClick={async () => {
+                  setNotaGuardada(nota);
+                  if (selected?.email) {
+                    await apiUsuarios({ action: "update", email: selected.email, fields: { nota } });
+                    setUsuarios(prev => prev.map(u => u.email === selected.email ? { ...u, nota } : u));
+                  }
+                }}
                   style={{ background: nota === notaGuardada ? "rgba(184,154,78,.1)" : gold, color: nota === notaGuardada ? AC.dim : AC.bg, border: `1px solid ${gold}`, borderRadius: 20, fontFamily: "monospace", fontSize: ".5rem", letterSpacing: ".2em", padding: ".5em 1em", cursor: "pointer", textTransform: "uppercase", width: "100%", boxSizing: "border-box", display: "block" }}>
                   {nota === notaGuardada && notaGuardada ? "✓ Nota activa en el chat" : "Activar nota en el chat"}
                 </button>
